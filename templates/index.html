@@ -4,6 +4,19 @@
 {% block body_class %}page-home{% endblock %}
 
 {% block content %}
+<section class="card how-it-works soft-reveal" aria-labelledby="how-heading">
+    <h2 id="how-heading" class="how-it-works-title">How HerSignal works</h2>
+    <div class="how-it-works-flow">
+        <span class="how-step">Answer symptom questions</span>
+        <span class="how-arrow" aria-hidden="true">→</span>
+        <span class="how-step">Pattern scoring</span>
+        <span class="how-arrow" aria-hidden="true">→</span>
+        <span class="how-step">Category insight</span>
+        <span class="how-arrow" aria-hidden="true">→</span>
+        <span class="how-step">Educational guidance</span>
+    </div>
+</section>
+
 {% if is_logged_in and not insight_count %}
 <section class="card banner-info hs-reveal hs-reveal--d1" aria-label="Insights tip">
     <p class="section-intro mb-0">
@@ -56,7 +69,7 @@
         <form action="{{ url_for('set_name') }}" method="POST" class="name-form">
             <label for="user_name">Your name</label>
             <input type="text" id="user_name" name="user_name" placeholder="For example: Chelsea" required autocomplete="nickname">
-            <button type="submit" class="primary-btn hs-btn-lift">Continue as guest</button>
+            <button type="submit" class="primary-btn hs-btn-lift animated-cta">Continue as guest</button>
         </form>
     </section>
     <section class="card auth-benefits-card hs-lift-card">
@@ -68,8 +81,8 @@
             <li>Shorter retake check</li>
         </ul>
         <div class="btn-row">
-            <a href="{{ url_for('auth.login') }}" class="primary-btn hs-btn-lift">Log in</a>
-            <a href="{{ url_for('auth.register') }}" class="secondary-btn hs-btn-lift">Register</a>
+            <a href="{{ url_for('auth.login') }}" class="primary-btn hs-btn-lift animated-cta">Log in</a>
+            <a href="{{ url_for('auth.register') }}" class="secondary-btn hs-btn-lift animated-cta">Register</a>
         </div>
     </section>
 </div>
@@ -112,7 +125,7 @@
         <label for="user_message">Your question</label>
         <textarea id="user_message" name="user_message" placeholder="For example: Can PCOS affect fertility?" required maxlength="{{ max_chat_message_length }}" rows="4">{{ user_message if user_message else '' }}</textarea>
         <div class="faq-form-actions">
-            <button type="submit" class="primary-btn hs-btn-lift" id="faq-submit-btn">
+            <button type="submit" class="primary-btn hs-btn-lift animated-cta" id="faq-submit-btn">
                 <span class="btn-label">Ask HerSignal</span>
                 <span class="btn-loading" aria-hidden="true">Thinking…</span>
             </button>

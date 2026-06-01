@@ -6,6 +6,7 @@
     <title>{% block title %}{{ page_title | default('HerSignal') }}{% endblock %}</title>
     {% include '_head_assets.html' %}
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v={{ static_version | default('1') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hersignal-motion.css') }}?v={{ static_version | default('1') }}">
     {% block extra_head %}{% endblock %}
 </head>
 <body class="hs-page-enter {% block body_class %}{% endblock %}">
@@ -15,6 +16,11 @@ if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
 }
 </script>
     {% include '_skip_link.html' %}
+    <div class="hs-ambient-blobs" aria-hidden="true">
+        <span class="floating-blob floating-blob--1"></span>
+        <span class="floating-blob floating-blob--2"></span>
+        <span class="floating-blob floating-blob--3"></span>
+    </div>
     <div class="page-shell">
         {% include '_account_nav.html' %}
 
@@ -37,6 +43,8 @@ if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         {% include '_page_footer.html' %}
     </div>
 
+    {% include '_loading_overlay.html' %}
+    <script src="{{ url_for('static', filename='js/hersignal-motion.js') }}?v={{ static_version | default('1') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

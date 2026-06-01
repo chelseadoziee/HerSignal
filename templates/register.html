@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 
 {% block title %}{{ page_title | default('Register — HerSignal') }}{% endblock %}
+{% block body_class %}page-auth{% endblock %}
 {% block content %}
-<section class="card auth-page-card">
+<section class="card auth-page-card glow-card soft-reveal">
     <h2>Create your account</h2>
     <p class="section-intro">Track educational category scores over time—HerSignal stores summaries only, not each answer.</p>
     <ul class="benefits-list benefits-list--compact">
@@ -21,7 +22,7 @@
         <p class="text-caption">3–32 characters: letters, numbers, or underscores.</p>
         <label for="password">Password (8+ characters)</label>
         <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password">
-        <button type="submit" class="primary-btn">Create account</button>
+        <button type="submit" class="primary-btn animated-cta">Create account</button>
     </form>
 
     <p class="text-caption mt-md">

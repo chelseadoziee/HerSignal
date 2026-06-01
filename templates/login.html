@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 
 {% block title %}{{ page_title | default('Log in — HerSignal') }}{% endblock %}
+{% block body_class %}page-auth{% endblock %}
 {% block content %}
-<section class="card auth-page-card">
+<section class="card auth-page-card glow-card soft-reveal">
     <h2>Log in</h2>
     <p class="section-intro">Access your saved insights timeline and follow-up checks.</p>
     <ul class="benefits-list benefits-list--compact">
@@ -20,7 +21,7 @@
         <input type="text" id="username" name="username" value="{{ username }}" required maxlength="32" autocomplete="username" autocapitalize="none" spellcheck="false">
         <label for="password">Password</label>
         <input type="password" id="password" name="password" required autocomplete="current-password">
-        <button type="submit" class="primary-btn">Log in</button>
+        <button type="submit" class="primary-btn animated-cta">Log in</button>
     </form>
 
     <p class="text-caption mt-md">

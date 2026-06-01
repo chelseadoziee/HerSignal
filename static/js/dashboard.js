@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
     highlightTopScoreCards();
-    animateResultCards();
     initResultsPatternChart();
     initResultsPanels();
     initHomeHeroMotion();
@@ -21,7 +20,7 @@ function highlightTopScoreCards() {
     }
 
     const parsedCards = Array.from(scoreCards).map((card) => {
-        const scoreElement = card.querySelector("p");
+        const scoreElement = card.querySelector(".score-card-value") || card.querySelector("p");
         const rawText = scoreElement ? scoreElement.textContent.trim() : "";
         const score = parseFloat(rawText);
 
@@ -274,30 +273,6 @@ function showStaticPatternChart(panel) {
         fallback.hidden = false;
     }
 }
-
-function animateResultCards() {
-    const cards = document.querySelectorAll(
-        ".score-card, .result-info-card, .chart-panel, .results-insight-row, .results-panel"
-    );
-
-    if (!cards.length) {
-        return;
-    }
-
-    cards.forEach((card) => {
-        card.style.opacity = "0";
-        card.style.transform = "translateY(14px)";
-        card.style.transition = "opacity 0.45s ease, transform 0.45s ease";
-    });
-
-    cards.forEach((card, index) => {
-        setTimeout(() => {
-            card.style.opacity = "1";
-            card.style.transform = "translateY(0)";
-        }, 80 * index);
-    });
-}
-
 
 function handleChartLoad() {
     const chartImage = document.querySelector(".chart-image--fallback");

@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
 {% block title %}{{ page_title | default('Follow-up insight — HerSignal') }}{% endblock %}
+{% block body_class %}page-follow-up{% endblock %}
 
 {% block content %}
-<section class="card follow-up-results-card">
+<section class="card follow-up-results-card glow-card">
     {% if saved_insight %}
     <div class="banner-success insight-saved-banner" role="status">
         Follow-up saved to <a href="{{ url_for('my_insights') }}">Insights</a>.
@@ -65,9 +66,9 @@
     {% endif %}
 
     <div class="btn-row follow-up-actions">
-        <a href="{{ url_for('my_insights') }}" class="primary-btn">Insights</a>
-        <a href="{{ url_for('retake_insight') }}" class="secondary-btn">Follow-up again</a>
-        <a href="{{ url_for('symptoms_page') }}" class="secondary-btn">Full checker</a>
+        <a href="{{ url_for('my_insights') }}" class="primary-btn animated-cta">Insights</a>
+        <a href="{{ url_for('retake_insight') }}" class="secondary-btn animated-cta">Follow-up again</a>
+        <a href="{{ url_for('symptoms_page') }}" class="secondary-btn animated-cta">Full checker</a>
     </div>
 </section>
 {% endblock %}

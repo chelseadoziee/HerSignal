@@ -1,0 +1,700 @@
+/**
+ * HerSignal FemTech motion layer — soft glow, calm reveals, premium wellness feel.
+ */
+
+/* ── Ambient floating blobs ── */
+.hs-ambient-blobs {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.page-shell {
+    position: relative;
+    z-index: 1;
+}
+
+.floating-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(72px);
+    opacity: 0.42;
+    will-change: transform;
+    animation: hsBlobDrift 22s var(--hs-ease-soft) infinite alternate;
+}
+
+.floating-blob--1 {
+    width: min(42vw, 320px);
+    height: min(42vw, 320px);
+    top: -8%;
+    left: -6%;
+    background: radial-gradient(circle, rgba(201, 122, 168, 0.55), transparent 70%);
+}
+
+.floating-blob--2 {
+    width: min(36vw, 280px);
+    height: min(36vw, 280px);
+    top: 18%;
+    right: -10%;
+    background: radial-gradient(circle, rgba(168, 130, 200, 0.5), transparent 70%);
+    animation-delay: -6s;
+    animation-duration: 26s;
+}
+
+.floating-blob--3 {
+    width: min(34vw, 260px);
+    height: min(34vw, 260px);
+    bottom: 8%;
+    left: 20%;
+    background: radial-gradient(circle, rgba(255, 200, 220, 0.45), transparent 70%);
+    animation-delay: -12s;
+    animation-duration: 28s;
+}
+
+.page-results .floating-blob--2,
+.page-follow-up .floating-blob--2 {
+    opacity: 0.55;
+}
+
+.page-auth .hs-ambient-blobs .floating-blob {
+    opacity: 0.38;
+}
+
+@keyframes hsBlobDrift {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+    100% {
+        transform: translate(18px, -22px) scale(1.06);
+    }
+}
+
+/* ── Hero sequence (landing) ── */
+.landing-hero-card .hero-image-wrap,
+.landing-hero-card .hero-text h1,
+.landing-hero-card .hero-subtitle,
+.landing-hero-card .hero-actions {
+    opacity: 0;
+}
+
+.landing-hero-card.hs-hero-ready .hero-image-wrap {
+    animation: hsHeroLogoIn 0.9s var(--hs-ease-out) forwards;
+}
+
+.landing-hero-card.hs-hero-ready .hero-text h1 {
+    animation: hsFadeUp 0.75s 0.2s var(--hs-ease-out) forwards;
+}
+
+.landing-hero-card.hs-hero-ready .hero-subtitle {
+    animation: hsFadeUp 0.75s 0.38s var(--hs-ease-out) forwards;
+}
+
+.landing-hero-card.hs-hero-ready .hero-actions {
+    animation: hsFadeUp 0.8s 0.52s var(--hs-ease-out) forwards;
+}
+
+@keyframes hsHeroLogoIn {
+    from {
+        opacity: 0;
+        transform: scale(0.92) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes hsFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Reusable utilities ── */
+.fade-up,
+.soft-reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+        opacity 0.65s var(--hs-ease-out),
+        transform 0.65s var(--hs-ease-out);
+}
+
+.fade-up.is-visible,
+.soft-reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.stagger-card {
+    opacity: 0;
+    transform: translateY(14px);
+}
+
+.stagger-card.is-visible {
+    animation: hsStaggerIn 0.55s var(--hs-ease-out) forwards;
+}
+
+@keyframes hsStaggerIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Glow cards & hover ── */
+.glow-card {
+    transition:
+        transform var(--hs-duration) var(--hs-ease-out),
+        box-shadow var(--hs-duration) var(--hs-ease-out),
+        border-color var(--hs-duration-fast) var(--hs-ease-soft);
+}
+
+.glow-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 14px 36px var(--hs-shadow-soft),
+        0 0 0 1px rgba(201, 95, 145, 0.12);
+    border-color: rgba(201, 95, 145, 0.35);
+}
+
+/* ── Animated CTAs ── */
+.primary-btn.animated-cta,
+.secondary-btn.animated-cta,
+a.primary-btn.animated-cta,
+a.secondary-btn.animated-cta {
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform var(--hs-duration) var(--hs-ease-out),
+        box-shadow var(--hs-duration) var(--hs-ease-out),
+        background var(--hs-duration-fast) var(--hs-ease-soft);
+}
+
+.primary-btn.animated-cta {
+    box-shadow: 0 4px 18px rgba(185, 79, 135, 0.25);
+}
+
+.primary-btn.animated-cta::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        105deg,
+        transparent 35%,
+        rgba(255, 255, 255, 0.28) 50%,
+        transparent 65%
+    );
+    transform: translateX(-120%);
+    transition: transform 0.6s var(--hs-ease-out);
+    pointer-events: none;
+}
+
+.primary-btn.animated-cta:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 10px 28px rgba(185, 79, 135, 0.35),
+        0 0 20px rgba(201, 122, 168, 0.25);
+    animation: hsCtaPulse 2.2s var(--hs-ease-soft) infinite;
+}
+
+.primary-btn.animated-cta:hover::after {
+    transform: translateX(120%);
+}
+
+.primary-btn.animated-cta:active,
+.secondary-btn.animated-cta:active {
+    transform: translateY(0) scale(0.98);
+}
+
+@keyframes hsCtaPulse {
+    0%,
+    100% {
+        box-shadow:
+            0 10px 28px rgba(185, 79, 135, 0.32),
+            0 0 16px rgba(201, 122, 168, 0.2);
+    }
+    50% {
+        box-shadow:
+            0 12px 32px rgba(185, 79, 135, 0.4),
+            0 0 24px rgba(201, 122, 168, 0.32);
+    }
+}
+
+.secondary-btn.animated-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px var(--hs-shadow-soft);
+}
+
+/* ── How it works flow ── */
+.how-it-works {
+    margin: 8px 0 28px;
+    padding: 28px 24px;
+    text-align: center;
+}
+
+.how-it-works-title {
+    margin: 0 0 22px;
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+    color: var(--hs-accent);
+}
+
+.how-it-works-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px 6px;
+}
+
+.how-step {
+    opacity: 0;
+    transform: translateY(10px);
+    padding: 12px 16px;
+    border-radius: var(--hs-radius-md);
+    background: linear-gradient(145deg, #fff8fc, #fffdfd);
+    border: 1px solid var(--hs-border);
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--hs-soft);
+    max-width: 11rem;
+    line-height: 1.45;
+}
+
+.how-step.is-visible {
+    animation: hsFadeUp 0.55s var(--hs-ease-out) forwards;
+}
+
+.how-arrow {
+    opacity: 0;
+    color: var(--hs-primary);
+    font-size: 1.1rem;
+    padding: 0 4px;
+}
+
+.how-arrow.is-visible {
+    animation: hsArrowGlow 1.2s var(--hs-ease-out) forwards;
+}
+
+@keyframes hsArrowGlow {
+    0% {
+        opacity: 0;
+        filter: drop-shadow(0 0 0 transparent);
+    }
+    40% {
+        opacity: 1;
+        filter: drop-shadow(0 0 8px rgba(185, 79, 135, 0.5));
+    }
+    100% {
+        opacity: 0.85;
+        filter: drop-shadow(0 0 4px rgba(185, 79, 135, 0.25));
+    }
+}
+
+/* ── Symptom checker stepped questions ── */
+.symptom-form--stepped .question-block {
+    display: none;
+    opacity: 0;
+}
+
+.symptom-form--stepped .question-block.question-block--active {
+    display: block;
+    animation: hsQuestionIn 0.42s var(--hs-ease-out) forwards;
+}
+
+.symptom-form--stepped .question-block.question-block--leaving {
+    animation: hsQuestionOut 0.32s var(--hs-ease-soft) forwards;
+}
+
+@keyframes hsQuestionIn {
+    from {
+        opacity: 0;
+        transform: translateX(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes hsQuestionOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-12px);
+    }
+}
+
+/* ── Answer micro-interactions ── */
+.option-pill {
+    transition:
+        transform var(--hs-duration-fast) var(--hs-ease-out),
+        border-color var(--hs-duration-fast) var(--hs-ease-soft),
+        box-shadow var(--hs-duration-fast) var(--hs-ease-soft),
+        background var(--hs-duration-fast) var(--hs-ease-soft);
+}
+
+.option-pill:has(input:checked) {
+    transform: scale(1.03);
+    border-color: var(--hs-primary);
+    box-shadow: 0 0 0 3px var(--hs-focus-ring), 0 6px 16px rgba(185, 79, 135, 0.15);
+    background: var(--hs-secondary-bg);
+}
+
+.option-pill:has(input:checked) span::after {
+    content: " ✓";
+    font-size: 0.85em;
+    color: var(--hs-primary);
+}
+
+/* ── Progress bar glow ── */
+.symptom-progress-fill {
+    transition: width 0.55s var(--hs-ease-out);
+    box-shadow: 0 0 12px rgba(185, 79, 135, 0.45);
+    background: linear-gradient(90deg, #b94f87, #d4a0c4, #b94f87);
+    background-size: 200% 100%;
+    animation: hsProgressShine 3s linear infinite;
+}
+
+@keyframes hsProgressShine {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 200% 50%;
+    }
+}
+
+/* ── Score meters & category icons ── */
+.score-card {
+    position: relative;
+}
+
+.score-card-icon {
+    display: block;
+    width: 2rem;
+    height: 2rem;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+    background: var(--hs-secondary-bg);
+    position: relative;
+}
+
+.category-icon--hormonal::before {
+    content: "◐";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: #b94f87;
+    animation: hsIconMoon 4s ease-in-out infinite;
+}
+
+.category-icon--metabolic::before {
+    content: "⚡";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    animation: hsIconEnergy 2.5s ease-in-out infinite;
+}
+
+.category-icon--inflammatory::before {
+    content: "✦";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: #c97a4a;
+    animation: hsIconSpark 2.2s ease-in-out infinite;
+}
+
+@keyframes hsIconMoon {
+    0%,
+    100% {
+        opacity: 0.85;
+        transform: rotate(0deg);
+    }
+    50% {
+        opacity: 1;
+        transform: rotate(-8deg);
+    }
+}
+
+@keyframes hsIconEnergy {
+    0%,
+    100% {
+        filter: drop-shadow(0 0 2px rgba(122, 79, 138, 0.3));
+    }
+    50% {
+        filter: drop-shadow(0 0 8px rgba(122, 79, 138, 0.55));
+    }
+}
+
+@keyframes hsIconSpark {
+    0%,
+    100% {
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.08);
+    }
+}
+
+.score-meter {
+    height: 8px;
+    border-radius: 999px;
+    background: #f5e6ef;
+    margin: 12px 0 4px;
+    overflow: hidden;
+}
+
+.score-meter-fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #b94f87, #c97a9a);
+    box-shadow: 0 0 10px rgba(185, 79, 135, 0.4);
+    transition: width 1s var(--hs-ease-out);
+}
+
+.hormonal-card .score-meter-fill {
+    background: linear-gradient(90deg, #b94f87, #d4a0c4);
+}
+
+.metabolic-card .score-meter-fill {
+    background: linear-gradient(90deg, #7a4f8a, #a88bb8);
+}
+
+.inflammatory-card .score-meter-fill {
+    background: linear-gradient(90deg, #c97a4a, #e0a88a);
+}
+
+.score-card-value {
+    transition: opacity 0.3s ease;
+}
+
+.score-card-value.is-counting {
+    opacity: 0.85;
+}
+
+/* ── Chart reveal ── */
+.chart-panel.chart-reveal-pending {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.chart-panel.chart-reveal-ready {
+    animation: hsChartReveal 0.75s var(--hs-ease-out) forwards;
+}
+
+.results-meaning-feature.meaning-reveal-pending {
+    opacity: 0;
+    transform: translateY(14px);
+}
+
+.results-meaning-feature.meaning-reveal-ready {
+    animation: hsFadeUp 0.7s 0.15s var(--hs-ease-out) forwards;
+}
+
+@keyframes hsChartReveal {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Loading overlay ── */
+.hs-loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(246, 243, 244, 0.82);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s var(--hs-ease-out);
+}
+
+.hs-loading-overlay.is-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.hs-loading-card {
+    text-align: center;
+    padding: 32px 36px;
+    max-width: 22rem;
+    border-radius: var(--hs-radius-lg);
+    background: var(--hs-surface);
+    border: 1px solid var(--hs-border);
+    box-shadow: 0 16px 48px var(--hs-shadow);
+}
+
+.hs-loading-logo {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    animation: hsHeartFloat 3s ease-in-out infinite;
+}
+
+.hs-loading-message {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: var(--hs-accent);
+    margin: 0;
+    min-height: 1.5em;
+}
+
+.hs-loading-message::after {
+    content: "";
+    animation: hsTypingCaret 0.9s step-end infinite;
+}
+
+@keyframes hsTypingCaret {
+    0%,
+    100% {
+        content: "";
+    }
+    50% {
+        content: "|";
+    }
+}
+
+/* ── Disclaimer card ── */
+.disclaimer-card {
+    border-radius: var(--hs-radius-md);
+    padding: 14px 18px;
+    background: var(--hs-disclaimer-bg);
+    border: 1px solid var(--hs-disclaimer-border);
+    opacity: 0;
+    animation: hsDisclaimerIn 0.8s 0.2s var(--hs-ease-out) forwards;
+}
+
+.disclaimer-card .medical-disclaimer-text {
+    margin: 0;
+    line-height: 1.65;
+    color: var(--hs-muted);
+    font-size: 0.9rem;
+}
+
+.disclaimer-card .disclaimer-icon {
+    display: inline-block;
+    margin-right: 6px;
+    animation: hsIconSpark 3s ease-in-out infinite;
+}
+
+@keyframes hsDisclaimerIn {
+    to {
+        opacity: 1;
+        box-shadow: 0 0 24px rgba(185, 79, 135, 0.08);
+    }
+}
+
+/* ── Page exit transition ── */
+body.hs-page-leaving .page-shell {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition:
+        opacity 0.28s var(--hs-ease-soft),
+        transform 0.28s var(--hs-ease-soft);
+}
+
+/* ── Follow-up compare reveal ── */
+.follow-up-compare-col.follow-up-reveal-pending {
+    opacity: 0;
+    transform: translateY(16px);
+}
+
+.follow-up-compare-col.follow-up-reveal-ready {
+    animation: hsStaggerIn 0.6s var(--hs-ease-out) forwards;
+}
+
+.follow-up-deltas-block.follow-up-reveal-pending,
+.follow-up-narrative-block.follow-up-reveal-pending {
+    opacity: 0;
+    transform: translateY(14px);
+}
+
+.follow-up-deltas-block.follow-up-reveal-ready,
+.follow-up-narrative-block.follow-up-reveal-ready {
+    animation: hsFadeUp 0.65s var(--hs-ease-out) forwards;
+}
+
+.insight-delta {
+    transition: transform 0.4s var(--hs-ease-out);
+}
+
+.insight-delta.delta-reveal-ready {
+    animation: hsFadeUp 0.5s var(--hs-ease-out) forwards;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+    .floating-blob,
+    .landing-hero-card .hero-logo,
+    .hs-loading-logo,
+    .category-icon--hormonal::before,
+    .category-icon--metabolic::before,
+    .category-icon--inflammatory::before,
+    .symptom-progress-fill,
+    .disclaimer-card .disclaimer-icon,
+    .primary-btn.animated-cta:hover {
+        animation: none !important;
+    }
+
+    .fade-up,
+    .soft-reveal,
+    .stagger-card,
+    .how-step,
+    .how-arrow,
+    .landing-hero-card .hero-image-wrap,
+    .landing-hero-card .hero-text h1,
+    .landing-hero-card .hero-subtitle,
+    .landing-hero-card .hero-actions,
+    .disclaimer-card,
+    .chart-panel.chart-reveal-pending,
+    .results-meaning-feature.meaning-reveal-pending {
+        opacity: 1 !important;
+        transform: none !important;
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .score-meter-fill {
+        transition: none !important;
+    }
+
+    .symptom-form--stepped .question-block {
+        display: block !important;
+        opacity: 1 !important;
+    }
+
+    .hs-loading-overlay {
+        transition: none;
+    }
+}

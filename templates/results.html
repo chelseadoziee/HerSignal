@@ -2,9 +2,10 @@
 {% from "_results_panel.html" import results_panel %}
 
 {% block title %}{{ page_title }}{% endblock %}
+{% block body_class %}page-results{% endblock %}
 
 {% block content %}
-<section class="card results-card">
+<section class="card results-card glow-card">
     {% if saved_insight %}
     <div class="banner-success insight-saved-banner" role="status">
         Saved to <a href="{{ url_for('my_insights') }}">Insights</a>—summary scores are on your timeline.
@@ -23,26 +24,32 @@
 
     <div class="btn-row results-actions">
         {% if is_logged_in %}
-        <a href="{{ url_for('my_insights') }}" class="primary-btn">View insights</a>
+        <a href="{{ url_for('my_insights') }}" class="primary-btn animated-cta">View insights</a>
         {% else %}
-        <a href="{{ url_for('auth.login', next=url_for('my_insights')) }}" class="primary-btn">Log in to save</a>
+        <a href="{{ url_for('auth.login', next=url_for('my_insights')) }}" class="primary-btn animated-cta">Log in to save</a>
         {% endif %}
-        <a href="{{ url_for('export_results') }}" class="secondary-btn">Download PDF</a>
-        <a href="{{ url_for('symptoms_page') }}" class="secondary-btn">Checker again</a>
-        <a href="{{ url_for('home') }}" class="secondary-btn">Chat</a>
+        <a href="{{ url_for('export_results') }}" class="secondary-btn animated-cta">Download PDF</a>
+        <a href="{{ url_for('symptoms_page') }}" class="secondary-btn animated-cta">Checker again</a>
+        <a href="{{ url_for('home') }}" class="secondary-btn animated-cta">Chat</a>
     </div>
 
     <div class="score-cards">
         <div class="score-card hormonal-card {% if scores and scores.hormonal >= scores.metabolic and scores.hormonal >= scores.inflammatory %}top-score{% endif %}" data-chart-category="hormonal">
+            <span class="score-card-icon category-icon category-icon--hormonal" aria-hidden="true"></span>
             <h3>Hormonal</h3>
+            <div class="score-meter" role="presentation"><span class="score-meter-fill"></span></div>
             <p class="score-card-value">{{ scores.hormonal if scores and scores.hormonal is not none else 0 }}</p>
         </div>
         <div class="score-card metabolic-card {% if scores and scores.metabolic >= scores.hormonal and scores.metabolic >= scores.inflammatory %}top-score{% endif %}" data-chart-category="metabolic">
+            <span class="score-card-icon category-icon category-icon--metabolic" aria-hidden="true"></span>
             <h3>Metabolic</h3>
+            <div class="score-meter" role="presentation"><span class="score-meter-fill"></span></div>
             <p class="score-card-value">{{ scores.metabolic if scores and scores.metabolic is not none else 0 }}</p>
         </div>
         <div class="score-card inflammatory-card {% if scores and scores.inflammatory >= scores.hormonal and scores.inflammatory >= scores.metabolic %}top-score{% endif %}" data-chart-category="inflammatory">
+            <span class="score-card-icon category-icon category-icon--inflammatory" aria-hidden="true"></span>
             <h3>Inflammatory</h3>
+            <div class="score-meter" role="presentation"><span class="score-meter-fill"></span></div>
             <p class="score-card-value">{{ scores.inflammatory if scores and scores.inflammatory is not none else 0 }}</p>
         </div>
     </div>

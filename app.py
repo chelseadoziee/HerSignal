@@ -194,7 +194,7 @@ def login_required(view):
 @app.context_processor
 def inject_insight_count():
     base = {
-        "static_version": "4",
+        "static_version": "5",
         "max_chat_message_length": MAX_CHAT_MESSAGE_LENGTH,
         "is_logged_in": bool(session.get("user_id")),
         "page_title": "HerSignal",
