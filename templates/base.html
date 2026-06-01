@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ page_title | default('HerSignal') }}{% endblock %}</title>
+    {% include '_head_assets.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v={{ static_version | default('1') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="hs-page-enter {% block body_class %}{% endblock %}">
+<script>
+if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    document.body.classList.add("hs-reduced-motion-active");
+}
+</script>
+    {% include '_skip_link.html' %}
+    <div class="page-shell">
+        {% include '_account_nav.html' %}
+
+        {% if show_hero | default(true) %}
+        {% include '_hero.html' %}
+        {% endif %}
+
+        {% if show_journey | default(false) and active_step %}
+        {% include '_journey_strip.html' %}
+        {% endif %}
+
+        <main id="main-content" class="single-column-layout hs-main-content" tabindex="-1">
+            {% if show_disclaimer | default(true) %}
+            {% include '_medical_disclaimer.html' %}
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+
+        {% include '_page_footer.html' %}
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

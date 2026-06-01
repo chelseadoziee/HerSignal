@@ -1,46 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log in — HerSignal</title>
-    {% include '_head_assets.html' %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    {% include '_skip_link.html' %}
-    <div class="page-shell">
-        {% include '_account_nav.html' %}
+{% extends "base.html" %}
 
-        <main id="main-content" class="single-column-layout" tabindex="-1">
-            {% include '_medical_disclaimer.html' %}
+{% block title %}{{ page_title | default('Log in — HerSignal') }}{% endblock %}
+{% block content %}
+<section class="card auth-page-card">
+    <h2>Log in</h2>
+    <p class="section-intro">Access your saved insights timeline and follow-up checks.</p>
+    <ul class="benefits-list benefits-list--compact">
+        <li>Save symptom-check scores</li>
+        <li>Compare checks over time</li>
+        <li>Run shorter retake tests</li>
+    </ul>
 
-            <section class="card name-card">
-                <h2>Log in</h2>
-                <p class="section-intro">
-                    Sign in with your username and password. You can still use HerSignal as a guest from the home page without an account.
-                </p>
+    {% if error %}
+    <div class="error-box" role="alert">{{ error }}</div>
+    {% endif %}
 
-                {% if error %}
-                <div class="error-box">{{ error }}</div>
-                {% endif %}
+    <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}" class="name-form">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" value="{{ username }}" required maxlength="32" autocomplete="username" autocapitalize="none" spellcheck="false">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+        <button type="submit" class="primary-btn">Log in</button>
+    </form>
 
-                <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}" class="name-form">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" value="{{ username }}" required maxlength="32" autocomplete="username" autocapitalize="none" spellcheck="false">
-
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required autocomplete="current-password">
-
-                    <button type="submit" class="primary-btn">Log in</button>
-                </form>
-
-                <p class="section-intro" style="margin-top: 1rem;">
-                    No account yet?
-                    <a href="{{ url_for('auth.register') }}">Register</a>.
-                </p>
-            </section>
-        </main>
-    </div>
-</body>
-</html>
+    <p class="text-caption mt-md">
+        No account? <a href="{{ url_for('auth.register') }}">Register</a> · <a href="{{ url_for('home') }}">Continue as guest</a>
+    </p>
+</section>
+{% endblock %}

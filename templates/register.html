@@ -1,50 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register for HerSignal</title>
-    {% include '_head_assets.html' %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    {% include '_skip_link.html' %}
-    <div class="page-shell">
-        {% include '_account_nav.html' %}
+{% extends "base.html" %}
 
-        <main id="main-content" class="single-column-layout" tabindex="-1">
-            {% include '_medical_disclaimer.html' %}
+{% block title %}{{ page_title | default('Register — HerSignal') }}{% endblock %}
+{% block content %}
+<section class="card auth-page-card">
+    <h2>Create your account</h2>
+    <p class="section-intro">Track educational category scores over time—HerSignal stores summaries only, not each answer.</p>
+    <ul class="benefits-list benefits-list--compact">
+        <li>Private insights timeline</li>
+        <li>Sparkline trends &amp; compare dates</li>
+        <li>Follow-up retake questionnaire</li>
+    </ul>
 
-            <section class="card name-card">
-                <h2>Create an account</h2>
-                <p class="section-intro">
-                    Welcome to HerSignal, an intelligent conversational system designed for women with PCOS and anyone else who wants to ask questions, understand their symptoms and recieve insights into symptom patterns. For a better experience it is recommended that you register with HerSignal, that way you can track your results over time and see how your symptoms change over time.
-                    Kindly choose a username and password you will remember.
-                </p>
+    {% if error %}
+    <div class="error-box" role="alert">{{ error }}</div>
+    {% endif %}
 
-                {% if error %}
-                <div class="error-box">{{ error }}</div>
-                {% endif %}
+    <form method="POST" class="name-form">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" value="{{ username }}" required minlength="3" maxlength="32" pattern="[a-zA-Z0-9_]{3,32}" title="Letters, numbers, and underscores only" autocomplete="username" autocapitalize="none" spellcheck="false">
+        <p class="text-caption">3–32 characters: letters, numbers, or underscores.</p>
+        <label for="password">Password (8+ characters)</label>
+        <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password">
+        <button type="submit" class="primary-btn">Create account</button>
+    </form>
 
-                <form method="POST" class="name-form">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" value="{{ username }}" required minlength="3" maxlength="32" pattern="[a-zA-Z0-9_]{3,32}" title="Letters, numbers, and underscores only, 3 to 32 characters" autocomplete="username" autocapitalize="none" spellcheck="false">
-                    <p class="section-intro" style="margin-top: 0.35rem; font-size: 0.88rem;">
-                        3 to 32 characters: letters, numbers, or underscores. Usernames are not case sensitive.
-                    </p>
-
-                    <label for="password">Password (at least 8 characters)</label>
-                    <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password">
-
-                    <button type="submit" class="primary-btn">Create account</button>
-                </form>
-
-                <p class="section-intro" style="margin-top: 1rem;">
-                    Already registered?
-                    <a href="{{ url_for('auth.login') }}">Log in</a>.
-                </p>
-            </section>
-        </main>
-    </div>
-</body>
-</html>
+    <p class="text-caption mt-md">
+        Already registered? <a href="{{ url_for('auth.login') }}">Log in</a>
+    </p>
+</section>
+{% endblock %}

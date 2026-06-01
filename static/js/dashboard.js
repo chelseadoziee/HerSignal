@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
     highlightTopScoreCards();
     animateResultCards();
+    initResultsPatternChart();
+    initResultsPanels();
+    initHomeHeroMotion();
     handleChartLoad();
     enhanceSymptomFormValidation();
     enhanceFaqFormValidation();
@@ -57,8 +60,225 @@ function highlightTopScoreCards() {
 }
 
 
+function initHomeHeroMotion() {
+    if (!document.body.classList.contains("page-home")) {
+        return;
+    }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+    }
+
+    const wrap = document.querySelector(".landing-hero-card .hero-image-wrap");
+
+    if (!wrap) {
+        return;
+    }
+
+    wrap.addEventListener("mousemove", (event) => {
+        const rect = wrap.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - 0.5;
+        const y = (event.clientY - rect.top) / rect.height - 0.5;
+        wrap.style.transform = `translate(${x * 8}px, ${y * 6}px)`;
+    });
+
+    wrap.addEventListener("mouseleave", () => {
+        wrap.style.transform = "";
+    });
+}
+
+function initResultsPanels() {
+    const panels = document.querySelectorAll(".results-panel");
+
+    if (!panels.length) {
+        return;
+    }
+
+    panels.forEach((panel) => {
+        panel.addEventListener("toggle", () => {
+            if (!panel.open) {
+                return;
+            }
+
+            panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+    });
+}
+
+
+function initResultsPatternChart() {
+    const panel = document.getElementById("results-pattern-chart-panel");
+    const canvas = document.getElementById("results-pattern-chart");
+
+    if (!panel || !canvas || typeof Chart === "undefined") {
+        showStaticPatternChart(panel);
+        return;
+    }
+
+    const categories = [
+        { key: "hormonal", label: "Hormonal", color: "#b94f87" },
+        { key: "metabolic", label: "Metabolic", color: "#7a4f8a" },
+        { key: "inflammatory", label: "Inflammatory", color: "#c97a4a" },
+    ];
+
+    const values = categories.map((item) => {
+        const raw = panel.dataset[item.key];
+        const parsed = parseFloat(raw);
+        return Number.isNaN(parsed) ? 0 : parsed;
+    });
+
+    const maxValue = Math.max(...values, 0);
+    const scaleMax = Math.max(5, Math.ceil(maxValue));
+
+    const scoreCards = document.querySelectorAll(".score-card[data-chart-category]");
+
+    const clearHighlights = () => {
+        scoreCards.forEach((card) => card.classList.remove("chart-highlight"));
+    };
+
+    const highlightCategory = (index) => {
+        clearHighlights();
+        if (index === undefined || index === null || index < 0) {
+            return;
+        }
+        const key = categories[index]?.key;
+        if (!key) {
+            return;
+        }
+        const card = document.querySelector(`.score-card[data-chart-category="${key}"]`);
+        if (card) {
+            card.classList.add("chart-highlight");
+        }
+    };
+
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+        showStaticPatternChart(panel);
+        return;
+    }
+
+    const chart = new Chart(ctx, {
+        type: "radar",
+        data: {
+            labels: categories.map((item) => item.label),
+            datasets: [
+                {
+                    label: "Your pattern",
+                    data: values,
+                    backgroundColor: "rgba(185, 79, 135, 0.22)",
+                    borderColor: "#b94f87",
+                    borderWidth: 2,
+                    pointBackgroundColor: categories.map((item) => item.color),
+                    pointBorderColor: "#ffffff",
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: categories.map((item) => item.color),
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 900,
+                easing: "easeOutQuart",
+            },
+            interaction: {
+                mode: "nearest",
+                intersect: true,
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: "rgba(60, 42, 53, 0.92)",
+                    titleFont: { family: "'Source Sans 3', sans-serif", size: 13 },
+                    bodyFont: { family: "'Source Sans 3', sans-serif", size: 13 },
+                    padding: 12,
+                    callbacks: {
+                        label(context) {
+                            const value = context.raw ?? 0;
+                            return `Educational score: ${value}`;
+                        },
+                    },
+                },
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: scaleMax,
+                    ticks: {
+                        stepSize: 1,
+                        backdropColor: "transparent",
+                        color: "rgba(91, 68, 80, 0.75)",
+                    },
+                    grid: { color: "rgba(235, 205, 221, 0.65)" },
+                    angleLines: { color: "rgba(235, 205, 221, 0.85)" },
+                    pointLabels: {
+                        font: { family: "'Fraunces', Georgia, serif", size: 13 },
+                        color: "#7a2f56",
+                    },
+                },
+            },
+            onHover(_event, elements) {
+                if (elements.length) {
+                    highlightCategory(elements[0].index);
+                } else {
+                    clearHighlights();
+                }
+            },
+        },
+    });
+
+    canvas.addEventListener("mouseleave", clearHighlights);
+
+    scoreCards.forEach((card) => {
+        card.addEventListener("mouseenter", () => {
+            const key = card.dataset.chartCategory;
+            const index = categories.findIndex((item) => item.key === key);
+            if (index === -1) {
+                return;
+            }
+            highlightCategory(index);
+            const meta = chart.getDatasetMeta(0);
+            const point = meta.data[index];
+            if (point) {
+                chart.setActiveElements([{ datasetIndex: 0, index }]);
+                chart.tooltip.setActiveElements([{ datasetIndex: 0, index }], {
+                    x: point.x,
+                    y: point.y,
+                });
+                chart.update();
+            }
+        });
+        card.addEventListener("mouseleave", () => {
+            clearHighlights();
+            chart.setActiveElements([]);
+            chart.tooltip.setActiveElements([]);
+            chart.update();
+        });
+    });
+
+    panel.classList.remove("chart-panel--static");
+}
+
+function showStaticPatternChart(panel) {
+    if (!panel) {
+        return;
+    }
+    panel.classList.add("chart-panel--static");
+    const fallback = panel.querySelector(".chart-image--fallback");
+    if (fallback) {
+        fallback.hidden = false;
+    }
+}
+
 function animateResultCards() {
-    const cards = document.querySelectorAll(".score-card, .result-info-card, .chart-panel");
+    const cards = document.querySelectorAll(
+        ".score-card, .result-info-card, .chart-panel, .results-insight-row, .results-panel"
+    );
 
     if (!cards.length) {
         return;
@@ -80,9 +300,9 @@ function animateResultCards() {
 
 
 function handleChartLoad() {
-    const chartImage = document.querySelector(".chart-image");
+    const chartImage = document.querySelector(".chart-image--fallback");
 
-    if (!chartImage) {
+    if (!chartImage || chartImage.hidden) {
         return;
     }
 

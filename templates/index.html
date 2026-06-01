@@ -1,170 +1,128 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HerSignal</title>
-    {% include '_head_assets.html' %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    {% include '_skip_link.html' %}
-    <div class="page-shell">
-        {% include '_account_nav.html' %}
+{% extends "base.html" %}
 
-        <header class="hero-card landing-hero-card" aria-labelledby="site-title">
-            <div class="hero-image-wrap">
-                <img
-                    src="{{ url_for('static', filename='images/heart_logo.png') }}"
-                    alt=""
-                    class="hero-logo"
-                    decoding="async"
-                >
-            </div>
+{% block title %}{{ page_title }}{% endblock %}
+{% block body_class %}page-home{% endblock %}
 
-            <div class="hero-text">
-                <h1 id="site-title">HerSignal</h1>
-                <p class="hero-subtitle">
-                    An insightful space created for women with PCOS to explore symptom patterns
-                    and receive clearer educational support in a clear and structured way.
-                </p>
-            </div>
-        </header>
+{% block content %}
+{% if is_logged_in and not insight_count %}
+<section class="card banner-info hs-reveal hs-reveal--d1" aria-label="Insights tip">
+    <p class="section-intro mb-0">
+        <strong>Tip:</strong> Complete the <a href="{{ url_for('symptoms_page') }}">symptom checker</a> to save your first insight. Open <strong>Insights</strong> in the nav anytime.
+    </p>
+</section>
+{% elif is_logged_in and insight_count %}
+<section class="card banner-info hs-reveal hs-reveal--d1" aria-label="Saved insights">
+    <p class="section-intro mb-0">
+        You have <strong>{{ insight_count }}</strong> saved snapshot{% if insight_count != 1 %}s{% endif %}. Open <strong>Insights</strong> to compare scores over time.
+    </p>
+</section>
+{% endif %}
 
-        <main id="main-content" class="single-column-layout" tabindex="-1">
-
-            {% include '_medical_disclaimer.html' %}
-
-            {% if is_logged_in and not insight_count %}
-            <section class="card insight-teaser-card" aria-label="Insights tip">
-                <p class="section-intro" style="margin:0;">
-                    <strong>Tip:</strong> Complete the <a href="{{ url_for('symptoms_page') }}">symptom checker</a> to save your first insight snapshot—open <strong>Insights</strong> above anytime to track changes over time.
-                </p>
-            </section>
-            {% elif is_logged_in and insight_count %}
-            <section class="card insight-teaser-card" aria-label="Saved insights">
-                <p class="section-intro" style="margin:0;">
-                    You have <strong>{{ insight_count }}</strong> saved pattern snapshot{% if insight_count != 1 %}s{% endif %}. Use <strong>Insights</strong> above to compare scores between checks.
-                </p>
-            </section>
+<section class="home-helps-section hs-reveal hs-reveal--d2" aria-labelledby="home-helps-heading">
+    <h2 id="home-helps-heading" class="home-section-title">What HerSignal helps with</h2>
+    <div class="home-feature-grid">
+        <article class="card home-feature-card hs-lift-card">
+            <h3>Understand symptom patterns</h3>
+            <p>Map your answers into hormonal, metabolic, and inflammatory educational scores so symptoms feel less random.</p>
+            <a href="{{ url_for('symptoms_page') }}" class="text-link">Start symptom checker</a>
+        </article>
+        <article class="card home-feature-card hs-lift-card">
+            <h3>Ask PCOS questions</h3>
+            <p>Chat with HerSignal for calm, structured education about symptoms, cycles, and everyday concerns.</p>
+            <a href="{% if user_name %}#ask-heading{% else %}{{ url_for('home') }}{% endif %}" class="text-link">Ask a question</a>
+        </article>
+        <article class="card home-feature-card hs-lift-card">
+            <h3>Track your insights</h3>
+            <p>Save snapshots when you are logged in and notice how your pattern shifts across checks over time.</p>
+            {% if is_logged_in %}
+            <a href="{{ url_for('my_insights') }}" class="text-link">Open insights</a>
+            {% else %}
+            <a href="{{ url_for('auth.register') }}" class="text-link">Create an account</a>
             {% endif %}
+        </article>
+    </div>
+</section>
 
-            {% if not user_name %}
-            <section class="card name-card">
-                <h2>Welcome to HerSignal</h2>
-                <p class="section-intro prose-width">
-                    Before we begin, what would you like HerSignal to call you?
-                    This helps make your experience feel a little more personal.
-                </p>
+{% if not user_name %}
+<div class="auth-split hs-reveal hs-reveal--d3">
+    <section class="card name-card hs-lift-card">
+        <h2>Continue as guest</h2>
+        <p class="section-intro prose-width">
+            Choose a display name for chat and the symptom checker. Guest mode does <strong>not</strong> save your insights timeline.
+        </p>
+        {% if faq_error %}
+        <div class="error-box" role="alert">{{ faq_error }}</div>
+        {% endif %}
+        <form action="{{ url_for('set_name') }}" method="POST" class="name-form">
+            <label for="user_name">Your name</label>
+            <input type="text" id="user_name" name="user_name" placeholder="For example: Chelsea" required autocomplete="nickname">
+            <button type="submit" class="primary-btn hs-btn-lift">Continue as guest</button>
+        </form>
+    </section>
+    <section class="card auth-benefits-card hs-lift-card">
+        <h2>Account</h2>
+        <p class="section-intro">Register or log in to unlock <strong>Insights</strong>. Save scores, compare checks, and run follow up tests.</p>
+        <ul class="benefits-list">
+            <li>Private score timeline</li>
+            <li>Compare two dates</li>
+            <li>Shorter retake check</li>
+        </ul>
+        <div class="btn-row">
+            <a href="{{ url_for('auth.login') }}" class="primary-btn hs-btn-lift">Log in</a>
+            <a href="{{ url_for('auth.register') }}" class="secondary-btn hs-btn-lift">Register</a>
+        </div>
+    </section>
+</div>
+{% else %}
 
-                {% if faq_error %}
-                <div class="error-box" role="alert">
-                    {{ faq_error }}
-                </div>
-                {% endif %}
+<section class="card landing-card hs-lift-card hs-reveal hs-reveal--d3" aria-labelledby="ask-heading" id="chat-section">
+    <h2 id="ask-heading">Ask HerSignal</h2>
+    <p class="section-intro prose-width">
+        Hi {{ user_name }}, ask about PCOS symptoms, patterns, or everyday questions. Answers are educational, not medical advice.
+    </p>
 
-                <form action="{{ url_for('set_name') }}" method="POST" class="name-form">
-                    <label for="user_name">Your name</label>
-                    <input
-                        type="text"
-                        id="user_name"
-                        name="user_name"
-                        placeholder="For example: Chelsea"
-                        required
-                        autocomplete="nickname"
-                    >
-                    <button type="submit" class="primary-btn">Continue</button>
-                </form>
-            </section>
+    <div id="faq-answer-panel" class="faq-answer-panel" data-ask-url="{{ url_for('ask') }}" aria-live="polite" aria-busy="false">
+        {% if faq_error %}
+        <div class="error-box" role="alert" id="faq-error-box">{{ faq_error }}</div>
+        {% endif %}
+        {% if faq_response %}
+        <div class="chat-thread" id="faq-chat-thread">
+            {% if user_message %}
+            <div class="chat-bubble user-bubble"><p>{{ user_message }}</p></div>
             {% endif %}
-
-            {% if user_name %}
-            <section class="card landing-card" aria-labelledby="ask-heading">
-                <h2 id="ask-heading">Ask HerSignal</h2>
-                <p class="section-intro prose-width">
-                    Welcome to HerSignal, {{ user_name }}. This space is here to help you explore common questions and concerns related to PCOS. You can ask about symptoms, possible causes or general things you may be unsure about. Even if every answer cannot be fully covered, HerSignal will always try to guide you as clearly and helpfully as possible!
-                </p>
-
-                <div
-                    id="faq-answer-panel"
-                    class="faq-answer-panel"
-                    data-ask-url="{{ url_for('ask') }}"
-                    aria-live="polite"
-                    aria-busy="false"
-                >
-                    {% if faq_error %}
-                    <div class="error-box" role="alert" id="faq-error-box">
-                        {{ faq_error }}
-                    </div>
-                    {% endif %}
-
-                    {% if faq_response %}
-                    <div class="chat-thread" id="faq-chat-thread">
-                        {% if user_message %}
-                        <div class="chat-bubble user-bubble">
-                            <p>{{ user_message }}</p>
-                        </div>
-                        {% endif %}
-
-                        <div class="chat-label">HerSignal says ✨</div>
-
-                        <div class="chat-bubble bot-bubble">
-                            <p>{{ faq_response }}</p>
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <p class="suggested-label" id="suggested-questions-label">Try a starter question</p>
-                <div class="suggested-chips" role="group" aria-labelledby="suggested-questions-label">
-                    <button type="button" class="suggestion-chip" data-suggestion="What is PCOS?">What is PCOS?</button>
-                    <button type="button" class="suggestion-chip" data-suggestion="Can PCOS affect fertility?">Fertility</button>
-                    <button type="button" class="suggestion-chip" data-suggestion="Why are my periods irregular?">Irregular periods</button>
-                    <button type="button" class="suggestion-chip" data-suggestion="What helps with insulin resistance?">Insulin resistance</button>
-                    <button type="button" class="suggestion-chip" data-suggestion="Can birth control help PCOS symptoms?">Birth control</button>
-                    <button type="button" class="suggestion-chip" data-suggestion="What is hirsutism and what can help?">Hair growth</button>
-                    <button type="button" class="suggestion-chip" data-suggestion="What lifestyle changes support PCOS?">Lifestyle</button>
-                    <button type="button" class="suggestion-chip" data-suggestion="When should I see a doctor about PCOS?">See a clinician</button>
-                </div>
-
-                <form action="{{ url_for('ask') }}" method="POST" class="faq-form" id="faq-form">
-                    <label for="user_message">Your question</label>
-                    <textarea
-                        id="user_message"
-                        name="user_message"
-                        placeholder="For example: Can PCOS affect fertility?"
-                        required
-                        maxlength="{{ max_chat_message_length }}"
-                        rows="4"
-                    >{{ user_message if user_message else '' }}</textarea>
-
-                    <div class="faq-form-actions">
-                        <button type="submit" class="primary-btn" id="faq-submit-btn">
-                            <span class="btn-label">Ask HerSignal</span>
-                            <span class="btn-loading" aria-hidden="true">Thinking…</span>
-                        </button>
-                    </div>
-                </form>
-            </section>
-
-            <section class="card next-step-card">
-                <h2>Continue to Symptom Insight</h2>
-                <p class="section-intro prose-width">
-                    HerSignal can also help you understand your symptoms more clearly, so you can build a better sense of how your body may be responding over time. By answering a few guided questions, your responses are organised into broader pattern categories that help make overlapping experiences feel easier to interpret.
-                </p>
-
-                <a href="{{ url_for('symptoms_page') }}" class="secondary-btn nav-btn">
-                    Go to Symptom Checker
-                </a>
-            </section>
-            {% endif %}
-
-        </main>
+            <div class="chat-label">HerSignal says</div>
+            <div class="chat-bubble bot-bubble"><p>{{ faq_response }}</p></div>
+        </div>
+        {% endif %}
     </div>
 
-    <script>
-        window.HERSIGNAL_MAX_CHAT = {{ max_chat_message_length }};
-    </script>
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-</body>
-</html>
+    <p class="suggested-label" id="suggested-questions-label">Try a starter question</p>
+    <div class="suggested-chips" role="group" aria-labelledby="suggested-questions-label">
+        <button type="button" class="suggestion-chip hs-btn-lift" data-suggestion="What is PCOS?">What is PCOS?</button>
+        <button type="button" class="suggestion-chip hs-btn-lift" data-suggestion="Can PCOS affect fertility?">Fertility</button>
+        <button type="button" class="suggestion-chip hs-btn-lift" data-suggestion="Why are my periods irregular?">Irregular periods</button>
+        <button type="button" class="suggestion-chip hs-btn-lift" data-suggestion="What helps with insulin resistance?">Insulin resistance</button>
+        <button type="button" class="suggestion-chip hs-btn-lift" data-suggestion="Can birth control help PCOS symptoms?">Birth control</button>
+        <button type="button" class="suggestion-chip hs-btn-lift" data-suggestion="What is hirsutism and what can help?">Hair growth</button>
+        <button type="button" class="suggestion-chip hs-btn-lift" data-suggestion="What lifestyle changes support PCOS?">Lifestyle</button>
+        <button type="button" class="suggestion-chip hs-btn-lift" data-suggestion="When should I see a doctor about PCOS?">See a clinician</button>
+    </div>
+
+    <form action="{{ url_for('ask') }}" method="POST" class="faq-form" id="faq-form">
+        <label for="user_message">Your question</label>
+        <textarea id="user_message" name="user_message" placeholder="For example: Can PCOS affect fertility?" required maxlength="{{ max_chat_message_length }}" rows="4">{{ user_message if user_message else '' }}</textarea>
+        <div class="faq-form-actions">
+            <button type="submit" class="primary-btn hs-btn-lift" id="faq-submit-btn">
+                <span class="btn-label">Ask HerSignal</span>
+                <span class="btn-loading" aria-hidden="true">Thinking…</span>
+            </button>
+        </div>
+    </form>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>window.HERSIGNAL_MAX_CHAT = {{ max_chat_message_length }};</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}?v={{ static_version | default('1') }}"></script>
+{% endblock %}

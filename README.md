@@ -18,6 +18,24 @@ python app.py
 
 Open [http://127.0.0.1:5000](http://127.0.0.1:5000). The first startup may take a moment while the FAQ model loads in the background.
 
+### Streamlit shareable demo (optional)
+
+A separate UI lives in `streamlit_app.py` and does **not** change the Flask app:
+
+```bash
+pip install -r requirements-streamlit.txt
+streamlit run streamlit_app.py
+```
+
+See [STREAMLIT.md](STREAMLIT.md) for Streamlit Community Cloud deployment.
+
+### App flow
+
+1. **Chat** — FAQ on the home page (guest or signed in)
+2. **Checker** — Symptom questionnaire grouped by hormonal / metabolic / inflammatory
+3. **Results** — Category scores and export
+4. **Insights** — Timeline, trends, compare, and follow-up retake (account required)
+
 Install the Python dependencies from `requirements.txt` before running the app. Those packages are not bundled with the repository; you need to download and install them in your environment first, or HerSignal will not start.
 
 ### Accounts & insights

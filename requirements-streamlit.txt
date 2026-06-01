@@ -1,0 +1,3 @@
+# Streamlit shareable demo (install alongside the main app)
+-r requirements.txt
+streamlit>=1.32.0

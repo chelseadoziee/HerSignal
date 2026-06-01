@@ -1,0 +1,14 @@
+<footer class="site-footer" aria-label="Site footer">
+    <nav class="site-footer-nav" aria-label="Quick links">
+        <a href="{{ url_for('home') }}">Home</a>
+        <a href="{{ url_for('symptoms_page') }}">Symptom checker</a>
+        {% if is_logged_in %}
+        <a href="{{ url_for('my_insights') }}">Insights</a>
+        {% else %}
+        <a href="{{ url_for('auth.login') }}">Log in</a>
+        {% endif %}
+    </nav>
+    <p class="site-footer-note text-caption">
+        HerSignal is for education only—not medical diagnosis or treatment.
+    </p>
+</footer>

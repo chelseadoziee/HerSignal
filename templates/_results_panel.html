@@ -1,0 +1,13 @@
+{% macro results_panel(title, preview, panel_class='') %}
+<details class="results-panel {{ panel_class }}">
+    <summary class="results-panel__summary">
+        <span class="results-panel__title">{{ title }}</span>
+        {% if preview %}
+        <span class="results-panel__preview">{{ preview }}</span>
+        {% endif %}
+    </summary>
+    <div class="results-panel__body">
+        {{ caller() }}
+    </div>
+</details>
+{% endmacro %}

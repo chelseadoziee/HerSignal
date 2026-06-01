@@ -1,0 +1,40 @@
+<nav class="journey-strip hs-lift-card" aria-label="Your path through HerSignal">
+    <ol class="journey-strip-list">
+        <li class="journey-step {% if active_step == 'chat' %}journey-step--current{% elif active_step in ('checker', 'results', 'insights') %}journey-step--done{% endif %}">
+            <a href="{{ url_for('home') }}" {% if active_step == 'chat' %}aria-current="step"{% endif %}>
+                <span class="journey-step-num">1</span>
+                <span class="journey-step-label">Chat</span>
+                <span class="journey-step-desc">Ask PCOS questions</span>
+            </a>
+        </li>
+        <li class="journey-step {% if active_step == 'checker' %}journey-step--current{% elif active_step in ('results', 'insights') %}journey-step--done{% endif %}">
+            <a href="{{ url_for('symptoms_page') }}" {% if active_step == 'checker' %}aria-current="step"{% endif %}>
+                <span class="journey-step-num">2</span>
+                <span class="journey-step-label">Checker</span>
+                <span class="journey-step-desc">Answer symptom prompts</span>
+            </a>
+        </li>
+        <li class="journey-step {% if active_step == 'results' %}journey-step--current{% elif active_step == 'insights' %}journey-step--done{% endif %}">
+            <span class="journey-step-static">
+                <span class="journey-step-num">3</span>
+                <span class="journey-step-label">Results</span>
+                <span class="journey-step-desc">See your pattern summary</span>
+            </span>
+        </li>
+        <li class="journey-step {% if active_step == 'insights' %}journey-step--current{% endif %}">
+            {% if is_logged_in %}
+            <a href="{{ url_for('my_insights') }}" {% if active_step == 'insights' %}aria-current="step"{% endif %}>
+                <span class="journey-step-num">4</span>
+                <span class="journey-step-label">Insights</span>
+                <span class="journey-step-desc">Track saved snapshots</span>
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.login', next=url_for('my_insights')) }}">
+                <span class="journey-step-num">4</span>
+                <span class="journey-step-label">Insights</span>
+                <span class="journey-step-desc">Track saved snapshots</span>
+            </a>
+            {% endif %}
+        </li>
+    </ol>
+</nav>

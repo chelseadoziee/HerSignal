@@ -39,6 +39,18 @@ def _legacy_scrypt_hash(stored_hash):
     return isinstance(stored_hash, str) and stored_hash.startswith("scrypt:")
 
 
+def _auth_layout(**kwargs):
+    """Layout context for login/register (no journey strip)."""
+    base = {
+        "show_journey": False,
+        "show_disclaimer": True,
+        "hero_variant": "compact",
+        "hero_id": "page-hero-title",
+    }
+    base.update(kwargs)
+    return base
+
+
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     error = None
@@ -55,7 +67,16 @@ def register():
             error = "Password must be at least 8 characters."
 
         if error:
-            return render_template("register.html", error=error, username=username)
+            return render_template(
+                "register.html",
+                error=error,
+                username=username,
+                **_auth_layout(
+                    page_title="Register — HerSignal",
+                    hero_title="Create your account",
+                    hero_subtitle="Save insights and track how your educational scores change over time.",
+                ),
+            )
 
         existing = User.query.filter_by(username=username).first()
         if existing:
@@ -69,7 +90,16 @@ def register():
                 record_activity("register_password_reset", {"username_length": len(username)})
                 return redirect(url_for("home"))
             error = "That username is already taken. Try another or log in."
-            return render_template("register.html", error=error, username=username)
+            return render_template(
+                "register.html",
+                error=error,
+                username=username,
+                **_auth_layout(
+                    page_title="Register — HerSignal",
+                    hero_title="Create your account",
+                    hero_subtitle="Save insights and track how your educational scores change over time.",
+                ),
+            )
 
         user = User(
             username=username,
@@ -84,7 +114,16 @@ def register():
         record_activity("register", {"username_length": len(username)})
         return redirect(url_for("home"))
 
-    return render_template("register.html", error=None, username="")
+    return render_template(
+        "register.html",
+        error=None,
+        username="",
+        **_auth_layout(
+            page_title="Register — HerSignal",
+            hero_title="Create your account",
+            hero_subtitle="Save insights and track how your educational scores change over time.",
+        ),
+    )
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -99,7 +138,16 @@ def login():
         except Exception as exc:
             current_app.logger.exception("Database error during login lookup: %s", exc)
             error = "HerSignal could not reach the account database. Please try again in a moment."
-            return render_template("login.html", error=error, username=username)
+            return render_template(
+                "login.html",
+                error=error,
+                username=username,
+                **_auth_layout(
+                    page_title="Log in — HerSignal",
+                    hero_title="Welcome back",
+                    hero_subtitle="Sign in to access your private insights timeline.",
+                ),
+            )
 
         if user and _legacy_scrypt_hash(user.password_hash):
             error = (
@@ -107,11 +155,29 @@ def login():
                 "Go to Register, enter the same username and a new password (8+ characters) to "
                 "restore access—your insight history is kept."
             )
-            return render_template("login.html", error=error, username=username)
+            return render_template(
+                "login.html",
+                error=error,
+                username=username,
+                **_auth_layout(
+                    page_title="Log in — HerSignal",
+                    hero_title="Welcome back",
+                    hero_subtitle="Sign in to access your private insights timeline.",
+                ),
+            )
 
         if not user or not _verify_password(user.password_hash, password):
             error = "Username or password was not recognised."
-            return render_template("login.html", error=error, username=username)
+            return render_template(
+                "login.html",
+                error=error,
+                username=username,
+                **_auth_layout(
+                    page_title="Log in — HerSignal",
+                    hero_title="Welcome back",
+                    hero_subtitle="Sign in to access your private insights timeline.",
+                ),
+            )
 
         session["user_id"] = user.id
         session["user_name"] = user.username
@@ -122,7 +188,16 @@ def login():
             next_url = url_for("home")
         return redirect(next_url)
 
-    return render_template("login.html", error=None, username="")
+    return render_template(
+        "login.html",
+        error=None,
+        username="",
+        **_auth_layout(
+            page_title="Log in — HerSignal",
+            hero_title="Welcome back",
+            hero_subtitle="Sign in to access your private insights timeline.",
+        ),
+    )
 
 
 @auth_bp.route("/logout", methods=["POST"])

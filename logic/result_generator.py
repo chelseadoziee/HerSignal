@@ -23,13 +23,13 @@ def build_symptom_details():
 
     short_label_map = {
         "irregular_periods": "cycle irregularity",
-        "acne": "acne-related skin changes",
+        "acne": "skin changes related to acne",
         "facial_hair": "facial or body hair growth changes",
         "scalp_thinning": "scalp hair thinning or shedding",
-        "weight_changes": "weight-related difficulty",
+        "weight_changes": "difficulty with weight changes",
         "fatigue": "fatigue or low energy",
         "cravings": "cravings or energy crashes",
-        "stress_worsening": "stress-linked symptom worsening",
+        "stress_worsening": "symptoms that worsen with stress",
         "bloating": "bloating or puffiness",
         "mood_changes": "mood or emotional pattern changes",
     }
@@ -42,7 +42,7 @@ def build_symptom_details():
         "weight_changes": "Unexplained weight gain or difficulty managing weight",
         "fatigue": "Feeling unusually tired or fatigued",
         "cravings": "Strong cravings or energy crashes",
-        "stress_worsening": "Stress-linked symptom worsening",
+        "stress_worsening": "Symptoms that worsen with stress",
         "bloating": "Bloating or puffiness",
         "mood_changes": "Mood changes linked to symptoms or cycle",
     }
@@ -103,6 +103,68 @@ def load_supplement_info(json_path=None):
 
 def format_category_name(category):
     return CATEGORY_LABELS.get(category, str(category).title())
+
+
+def _first_sentence(text):
+    """Return the first sentence of plain text for panel previews."""
+    if not text or not str(text).strip():
+        return ""
+    chunk = str(text).strip().replace("\n", " ")
+    for end in (". ", "! ", "? "):
+        idx = chunk.find(end)
+        if idx != -1:
+            return chunk[: idx + 1].strip()
+    return chunk
+
+
+def _preview_text(text, max_chars=100):
+    """Trim text to a single line preview without breaking mid word."""
+    if not text:
+        return ""
+    clean = " ".join(str(text).split())
+    if len(clean) <= max_chars:
+        return clean
+    snippet = clean[:max_chars].rsplit(" ", 1)[0]
+    return f"{snippet}…"
+
+
+def _preview_from_paragraphs(paragraphs, max_chars=100):
+    if not paragraphs:
+        return ""
+    return _preview_text(paragraphs[0], max_chars=max_chars)
+
+
+def _join_paragraphs(paragraphs):
+    return "\n\n".join(p for p in (paragraphs or []) if p)
+
+
+def _build_contributing_preview(contributing_symptoms):
+    if not contributing_symptoms:
+        return "No contributing symptoms highlighted"
+    n = len(contributing_symptoms)
+    word = "symptom" if n == 1 else "symptoms"
+    return f"{n} {word} highlighted in this result"
+
+
+def _build_supplements_preview(notes):
+    if not notes:
+        return "No supplement notes for this pattern"
+    names = [n.get("name", "") for n in notes if n.get("name")]
+    head = ", ".join(names[:3])
+    if len(names) > 3:
+        head = f"{head}, and more"
+    count = len(notes)
+    label = "note" if count == 1 else "notes"
+    return f"{count} educational {label} · {head}"
+
+
+def _attach_supplement_previews(notes):
+    enriched = []
+    for note in notes:
+        item = dict(note)
+        item["preview"] = _preview_text(item.get("summary", ""), max_chars=90)
+        enriched.append(item)
+    return enriched
 
 
 def format_category_list(categories):
@@ -258,7 +320,7 @@ def get_prominent_categories(scores):
 def build_contributing_intro(contributing_symptoms):
     if not contributing_symptoms:
         return (
-            "No strong contributing symptoms were selected in this response, so HerSignal has less information to organise into a clearer pattern."
+            "No strong contributing symptoms were selected in this response, so HerSignal has less detail to connect into a clearer pattern."
         )
 
     yes_count = sum(1 for item in contributing_symptoms if item["response"] == "yes")
@@ -267,27 +329,28 @@ def build_contributing_intro(contributing_symptoms):
 
     if yes_count >= 4 and overlap_count >= 2:
         return (
-            "These symptoms contributed most clearly to the result because they were selected directly and several of them also overlapped across more than one educational category."
+            "These symptoms showed up most clearly in your answers, and several also appeared across more than one educational category. "
+            "That overlap may help explain why the pattern feels connected rather than isolated."
         )
 
     if yes_count >= 4:
         return (
-            "These symptoms contributed most clearly to the result because they were selected directly and formed the strongest educational pattern in this response."
+            "These symptoms showed up most clearly in your answers and shaped the strongest educational pattern in this result."
         )
 
     if maybe_count > yes_count:
         return (
-            "These symptoms contributed to the result, although some were selected with uncertainty. "
-            "That means the pattern should still be read gently."
+            "These symptoms contributed to the result, although some answers carried uncertainty. "
+            "HerSignal suggests reading this pattern gently and noticing what repeats over time."
         )
 
     if overlap_count >= 2:
         return (
-            "These symptom areas contributed to the result, and some of them influenced more than one educational category rather than sitting in only one group."
+            "These symptom signals contributed to the result, and some influenced more than one educational category rather than sitting in a single group alone."
         )
 
     return (
-        "These symptom areas contributed to the result and helped HerSignal organise the response into the educational categories shown above."
+        "These symptom signals helped HerSignal organise your answers into the educational categories shown above."
     )
 
 
@@ -302,85 +365,73 @@ def build_pattern_overlap_note(scores, responses, logic_summary=None):
 
     if logic_summary["all_equal_non_zero"]:
         return (
-            f"Your responses show a broad overlap across multiple symptom areas, with {top_label.lower()} and {second_label.lower()} features appearing closely together."
+            f"Your responses suggest broad overlap across symptom areas, with {top_label.lower()} and {second_label.lower()} signals appearing closely together as part of the same wider pattern."
         )
 
     if logic_summary["balanced_top_two"]:
         return (
-            f"Your responses suggest noticeable overlap between {top_label.lower()} and {second_label.lower()} symptom areas."
+            f"Your responses suggest noticeable overlap between {top_label.lower()} and {second_label.lower()} areas, which may be easier to understand when read as connected signals rather than separate themes."
         )
 
     return (
-        f"Your responses appear more concentrated in the {top_label.lower()} category, although some overlap may still exist across the broader symptom picture."
+        f"Your responses appear more concentrated in the {top_label.lower()} area, although overlap may still exist across your broader symptom picture."
     )
 
 
 def build_symptom_specific_explanation(scores, responses, grouped_symptoms, logic_summary=None):
+    """
+    Return spaced paragraphs for the featured "What this may mean" block.
+    Copy is concise, educational, and avoids hyphen characters.
+    """
     logic_summary = logic_summary or build_result_logic_summary(scores, responses)
 
     if logic_summary["low_signal"]:
-        return (
-            "The current response does not show a very strong or sharply defined symptom pattern. It may help to notice whether the same changes keep repeating over time."
-        )
+        return [
+            "This response shows a gentle pattern rather than one sharp signal standing alone.",
+            "That can still be worth noticing if the same symptoms keep repeating across your cycle, sleep, or stress.",
+            "Tracking what stays connected over time may help the picture feel less random and easier to understand.",
+        ]
 
     top_category = logic_summary["top_category"]
 
     if logic_summary["balanced_top_two"]:
         top_label = format_category_name(logic_summary["top_category"]).lower()
         second_label = format_category_name(logic_summary["second_category"]).lower()
-        return (
-            f"Your responses suggest a mixed {top_label} and {second_label} pattern rather than one isolated category."
-        )
+        return [
+            f"Your responses suggest that {top_label} and {second_label} pattern signals are showing up closely together right now.",
+            "These areas may be part of the same wider picture rather than separate stories.",
+            "Noticing how they connect over time may help you understand the pattern more clearly than focusing on one symptom alone.",
+        ]
 
     if top_category == "hormonal":
-        return (
-            "Based off your responses, your PCOS symptoms suggest that hormonal features are currently more noticeable. "
-            "Common PCOS symptoms such as irregular periods, acne, facial hair growth, scalp hair thinning, "
-            "or mood changes often reflect the way androgen activity and ovarian hormone signalling can become disrupted in PCOS. "
-            "This usually happens because the ovaries begin producing hormones in an uneven pattern, which can interfere with regular ovulation "
-            "and make hormone levels shift in ways the body feels quite clearly through the skin, hair, menstrual cycle, and emotional rhythm. "
-            "When ovulation becomes inconsistent, periods may arrive unpredictably, acne may become harder to control, "
-            "and hair changes can feel confusing because the body is responding to hormone signals that are not staying balanced. "
-            "Even when hormonal symptoms appear strongest, overlap with metabolic or inflammatory activity can still exist underneath. "
-            "In many women, understanding why these symptoms are appearing together is important because reducing the pressure behind those hormonal disruptions "
-            "may gradually help some symptoms feel easier to manage over time."
-        )
+        return [
+            "Your responses suggest that symptoms linked to hormones are showing up most clearly right now.",
+            "These signals can feel separate, but in PCOS they may be part of the same hormonal pattern.",
+            "Behind the scenes, hormone signalling can become uneven, and your body may show this through your cycle, skin, hair, and mood.",
+            "Metabolic or inflammatory overlap may still be playing a role in the background.",
+        ]
 
     if top_category == "metabolic":
-        return (
-            "This response suggests that metabolic features are currently more noticeable in your PCOS pattern. "
-            "In PCOS, this often means the body may be responding less efficiently to insulin, even when blood sugar problems are not obvious. "
-            "When that happens, the body can hold onto energy differently, which may make weight changes feel difficult to explain, "
-            "increase cravings, create tiredness after meals, or lead to sudden drops in energy during the day. "
-            "Many women notice that these symptoms feel frustrating because effort does not always produce the expected result, "
-            "especially when appetite, body response, and energy rhythm seem to work against each other. "
-            "This pattern develops because insulin does more than regulate sugar, it also influences hormone behaviour, "
-            "which means metabolic strain can quietly make other PCOS symptoms feel stronger too. "
-            "Understanding that connection can help because improving the reasons these symptoms cluster together "
-            "may gradually relieve part of the daily symptom burden."
-        )
+        return [
+            "Your responses suggest that metabolic pattern signals may be showing up most clearly in this result.",
+            "Cravings, energy dips, or difficulty with weight changes may feel confusing when daily habits stay similar.",
+            "In PCOS, how the body handles insulin and energy can influence hormones behind the scenes.",
+            "Noticing meals, energy, and mood together over time may help these signals feel less random and easier to understand.",
+        ]
 
     if top_category == "inflammatory":
-        return (
-            "This response suggests that inflammatory features are currently more noticeable in your PCOS pattern. "
-            "Inflammatory patterns in PCOS can appear through fatigue, skin irritation, internal heaviness, poor recovery from stress, "
-            "or symptoms feeling worse during emotionally demanding periods. "
-            "This happens because the body can remain in a low-level stressed state for long periods, "
-            "which may influence how the immune system, hormones, and energy regulation interact. "
-            "That can make symptoms feel heavier than expected, even when outward signs are difficult to explain clearly. "
-            "Inflammatory activity often does not stay separate from hormones or metabolism, "
-            "which is why symptoms can sometimes feel layered rather than isolated. "
-            "Understanding that pattern matters because easing some of the pressures that feed inflammation "
-            "may help reduce how intense certain symptoms feel over time."
-        )
+        return [
+            "Your responses suggest that inflammatory pattern signals may be showing up most clearly right now.",
+            "Fatigue, bloating, skin irritation, or symptoms during stress can cluster when the body stays under gentle ongoing strain.",
+            "That strain may influence energy, hormones, and recovery together rather than as separate problems.",
+            "Easing pressures that feed inflammation may help some daily symptoms feel lighter over time.",
+        ]
 
-    return (
-        "Your responses suggest overlap across more than one symptom area. "
-        "This reflects how PCOS rarely behaves in one isolated category because hormonal, metabolic, "
-        "and inflammatory processes often influence one another together. "
-        "When symptoms overlap like this, understanding the wider pattern often becomes more useful than focusing on one symptom alone, "
-        "because improving one underlying area can sometimes ease pressure across several symptoms at once."
-    )
+    return [
+        "Your responses suggest overlap across more than one symptom area.",
+        "In PCOS, hormonal, metabolic, and inflammatory processes often influence one another.",
+        "Seeing the wider pattern may be more useful than focusing on a single symptom alone.",
+    ]
 
 
 def build_chart_explanation(scores, logic_summary=None):
@@ -398,30 +449,30 @@ def build_chart_explanation(scores, logic_summary=None):
     if top_score == second_score == third_score and top_score > 0:
         return (
             "The chart shows a fairly even shape across all three categories. "
-            "This suggests the selected symptoms are spread across the hormonal, metabolic, and inflammatory areas rather than being concentrated in one section alone."
+            "This suggests your selected symptoms are spread across hormonal, metabolic, and inflammatory areas rather than concentrated in one section alone."
         )
 
     if top_score - second_score <= 1 and second_score > 0:
         return (
             f"The chart extends most clearly across the {top_label.lower()} and {second_label.lower()} sides. "
-            "This means more of the selected symptoms were grouped into those two educational areas, which visually supports a mixed or overlapping symptom picture."
+            "More of your selected symptoms were grouped into those two educational areas, which may visually support a mixed or overlapping symptom picture."
         )
 
     if top_score > 0 and second_score > 0:
         return (
             f"The chart leans most strongly toward the {top_label.lower()} side, with a smaller extension toward the {second_label.lower()} side. "
-            f"This suggests that {top_label.lower()} features were more noticeable in this response, while some {second_label.lower()} overlap also remains present."
+            f"This suggests {top_label.lower()} signals were more noticeable in this response, while some {second_label.lower()} overlap may still be present."
         )
 
     if top_score > 0:
         return (
             f"The chart leans most strongly toward the {top_label.lower()} side. "
-            "This suggests the selected symptoms were more concentrated in that educational category than in the others."
+            "This suggests your selected symptoms were more concentrated in that educational category than in the others."
         )
 
     return (
         "The chart remains fairly small because only limited symptom activity was captured in this response. "
-        "That means the visual pattern should be read cautiously and mainly as a simple organiser of the answers provided."
+        "HerSignal suggests reading it gently, mainly as a simple visual organiser of the answers you shared."
     )
 
 
@@ -437,21 +488,21 @@ def build_friendly_note(scores, responses, logic_summary=None):
     if maybe_count >= 3:
         return (
             "If some of these answers felt uncertain, it may help to notice whether symptoms repeat around your cycle, stress periods, sleep changes, or food and energy patterns. "
-            "Tracking this over time can sometimes make the picture feel clearer."
+            "Tracking this over time can sometimes help the pattern feel clearer and less random."
         )
 
     if len(prominent_categories) >= 2:
         return (
-            "Because more than one symptom area appears active here, it may be useful to notice how cycle changes, skin or hair changes, fatigue, cravings, mood changes, and weight-related difficulty connect over time rather than looking at them one by one."
+            "Because more than one symptom area appears active here, it may be useful to notice how cycle changes, skin or hair changes, fatigue, cravings, mood changes, and difficulty with weight connect over time rather than looking at them one by one."
         )
 
     if yes_count >= 4:
         return (
-            "This response suggests a more noticeable symptom pattern, so a simple tracker for periods, skin changes, hair changes, cravings, energy, mood, and weight-related symptoms may help you spot whether these experiences are staying linked over time."
+            "This response suggests a more noticeable symptom pattern, so a simple tracker for periods, skin changes, hair changes, cravings, energy, mood, and changes in weight may help you spot whether these experiences are staying linked over time."
         )
 
     return (
-        "This result is best used as a gentle awareness tool. Even a lighter pattern can still be worth noticing if the same symptoms keep repeating over time."
+        "This result is best used as a gentle educational awareness tool. Even a lighter pattern can still be worth noticing if the same symptoms keep repeating over time."
     )
 
 
@@ -490,7 +541,7 @@ def build_supplement_intro(notes, logic_summary=None):
         return "No specific supplement notes were triggered by this response pattern."
 
     return (
-        "These educational notes are based on the symptom categories that appeared more noticeable in your response."
+        "HerSignal has shared these gentle educational notes based on the symptom categories that appeared more noticeable in your response."
     )
 
 
@@ -506,47 +557,74 @@ def generate_result_data(scores, responses):
         contributing_symptoms = get_contributing_symptoms(responses)
         grouped_symptoms = group_contributing_symptoms_by_category(contributing_symptoms)
 
-        supplement_notes = select_supplement_notes(
-            safe_scores,
-            responses=responses,
-            grouped_symptoms=grouped_symptoms,
-            logic_summary=logic_summary,
+        supplement_notes = _attach_supplement_previews(
+            select_supplement_notes(
+                safe_scores,
+                responses=responses,
+                grouped_symptoms=grouped_symptoms,
+                logic_summary=logic_summary,
+            )
         )
+
+        why_paragraphs = build_symptom_specific_explanation(
+            safe_scores, responses, grouped_symptoms, logic_summary=logic_summary
+        )
+        overlap_note = build_pattern_overlap_note(
+            safe_scores, responses, logic_summary=logic_summary
+        )
+        chart_explanation = build_chart_explanation(safe_scores, logic_summary=logic_summary)
+        friendly_note = build_friendly_note(safe_scores, responses, logic_summary=logic_summary)
 
         return {
             "page_title": "Your Symptom Pattern Results",
-            "page_intro": "Based on your responses, HerSignal has organised your symptom findings into the PCOS symptom pattern categories below.",
+            "page_intro": "HerSignal has grouped your answers into hormonal, metabolic, and inflammatory educational scores to help you see the pattern below.",
             "scores": safe_scores,
             "contributing_intro": build_contributing_intro(contributing_symptoms),
+            "contributing_preview": _build_contributing_preview(contributing_symptoms),
             "contributing_symptoms": contributing_symptoms,
             "grouped_contributing_symptoms": grouped_symptoms,
-            "pattern_overlap_note": build_pattern_overlap_note(safe_scores, responses, logic_summary=logic_summary),
-            "why_hersignal_presented_response": build_symptom_specific_explanation(
-                safe_scores, responses, grouped_symptoms, logic_summary=logic_summary
-            ),
+            "pattern_overlap_note": overlap_note,
+            "overlap_preview": _preview_text(_first_sentence(overlap_note), max_chars=100),
+            "why_hersignal_paragraphs": why_paragraphs,
+            "why_preview": _preview_from_paragraphs(why_paragraphs, max_chars=100),
+            "why_hersignal_presented_response": _join_paragraphs(why_paragraphs),
             "supplement_intro": build_supplement_intro(supplement_notes, logic_summary=logic_summary),
+            "supplements_preview": _build_supplements_preview(supplement_notes),
             "supplement_notes": supplement_notes,
-            "chart_explanation": build_chart_explanation(safe_scores, logic_summary=logic_summary),
-            "friendly_note": build_friendly_note(safe_scores, responses, logic_summary=logic_summary),
-            "general_disclaimer": "HerSignal is an educational support system only. It does not diagnose PCOS, replace professional medical advice, or recommend treatment.",
-            "supplement_disclaimer": "Supplement information provided by HerSignal is educational only. Women should consult a qualified healthcare professional before starting supplements.",
+            "chart_explanation": chart_explanation,
+            "chart_preview": _preview_text(_first_sentence(chart_explanation), max_chars=100),
+            "friendly_note": friendly_note,
+            "note_preview": _preview_text(_first_sentence(friendly_note), max_chars=100),
+            "general_disclaimer": "HerSignal is for education and support only. It does not diagnose PCOS, replace professional medical advice, or recommend treatment.",
+            "supplement_disclaimer": "Supplement information from HerSignal is educational only. Please consult a qualified healthcare professional before starting supplements.",
         }
 
     except Exception:
         logger.exception("Unexpected error while generating result data.")
+        fallback_paragraphs = [
+            "HerSignal could not share a fuller interpretation just now.",
+            "You can still use the category scores above as a gentle educational guide.",
+        ]
         return {
             "page_title": "Your Symptom Pattern Results",
             "page_intro": "HerSignal could not build the full result just now.",
             "scores": {"hormonal": 0, "metabolic": 0, "inflammatory": 0},
             "contributing_intro": "No symptom details available.",
+            "contributing_preview": "No contributing symptoms highlighted",
             "contributing_symptoms": [],
             "grouped_contributing_symptoms": {"hormonal": [], "metabolic": [], "inflammatory": []},
             "pattern_overlap_note": "A full overlap explanation could not be generated just now.",
-            "why_hersignal_presented_response": "A fuller interpretation could not be generated just now.",
+            "overlap_preview": "Overlap note unavailable",
+            "why_hersignal_paragraphs": fallback_paragraphs,
+            "why_preview": fallback_paragraphs[0],
+            "why_hersignal_presented_response": _join_paragraphs(fallback_paragraphs),
             "supplement_intro": "No supplement notes available.",
+            "supplements_preview": "No supplement notes for this pattern",
             "supplement_notes": [],
             "chart_explanation": "A chart explanation could not be prepared just now.",
+            "chart_preview": "Chart explanation unavailable",
             "friendly_note": "Please use this as a gentle educational guide.",
+            "note_preview": "Gentle educational guide",
             "general_disclaimer": "HerSignal is an educational support system only.",
             "supplement_disclaimer": "Supplement information is educational only.",
         }
@@ -563,7 +641,7 @@ def generate_result_summary(scores, responses):
     ]
 
     for item in result_data["contributing_symptoms"]:
-        lines.append(f"- {item['label']}")
+        lines.append(f"• {item['label']}")
 
     lines.extend(
         [
@@ -580,6 +658,6 @@ def generate_result_summary(scores, responses):
     )
 
     for note in result_data["supplement_notes"]:
-        lines.append(f"- {note['name']}: {note['summary']}")
+        lines.append(f"• {note['name']}: {note['summary']}")
 
     return "\n".join(lines)

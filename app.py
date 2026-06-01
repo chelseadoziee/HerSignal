@@ -1,6 +1,34 @@
-from functools import wraps
+"""
+HerSignal Flask application.
+
+For the shareable demo on Streamlit Cloud, set the main file to streamlit_app.py
+(not this file). If Cloud runs this file via `streamlit run app.py`, we delegate
+to streamlit_app.py automatically.
+"""
 from pathlib import Path
 import os
+import sys
+
+_ROOT = Path(__file__).resolve().parent
+
+
+def _streamlit_is_running_this_file():
+    if os.getenv("STREAMLIT_RUNTIME_ENVIRONMENT"):
+        return True
+    cmd = " ".join(sys.argv).lower()
+    return "streamlit" in cmd and "run" in cmd
+
+
+if _streamlit_is_running_this_file() and (_ROOT / "streamlit_app.py").is_file():
+    os.chdir(_ROOT)
+    if str(_ROOT) not in sys.path:
+        sys.path.insert(0, str(_ROOT))
+    import runpy
+
+    runpy.run_path(str(_ROOT / "streamlit_app.py"), run_name="__main__")
+    raise SystemExit(0)
+
+from functools import wraps
 import logging
 import secrets
 import threading
@@ -51,8 +79,37 @@ from reportlab.pdfgen import canvas
 from database import db
 from models import ActivityLog, InsightSnapshot, User  # noqa: F401 -- register models with SQLAlchemy
 
-_instance_dir = Path(__file__).resolve().parent / "instance"
-_instance_dir.mkdir(exist_ok=True)
+_instance_dir = _ROOT / "instance"
+
+
+def _default_database_uri():
+    explicit = os.getenv("DATABASE_URL", "").strip()
+    if explicit:
+        return explicit
+    try:
+        _instance_dir.mkdir(parents=True, exist_ok=True)
+        db_file = _instance_dir / "hersignal.sqlite"
+        return "sqlite:///" + str(db_file.resolve())
+    except OSError:
+        return "sqlite:////tmp/hersignal.sqlite"
+
+
+def _init_database():
+    """Create tables when the database is writable (skip hard failure on read-only hosts)."""
+    try:
+        _instance_dir.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass
+    try:
+        with app.app_context():
+            db.create_all()
+            ensure_insight_snapshot_test_type(db)
+    except Exception as error:
+        app.logger.exception(
+            "Database init failed; login and insights may be unavailable until "
+            "DATABASE_URL points to a writable store: %s",
+            error,
+        )
 
 
 def _load_secret_key():
@@ -74,18 +131,13 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = os.getenv("SESSION_COOKIE_SECURE", "false").strip().lower() == "true"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=14)
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-    "DATABASE_URL",
-    "sqlite:///" + str(_instance_dir / "hersignal.sqlite"),
-)
+app.config["SQLALCHEMY_DATABASE_URI"] = _default_database_uri()
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 app.register_blueprint(auth_bp)
 
-with app.app_context():
-    db.create_all()
-    ensure_insight_snapshot_test_type(db)
+_init_database()
 
 MAX_CHAT_MESSAGE_LENGTH = 500
 ASK_RATE_LIMIT_COUNT = 12
@@ -142,8 +194,18 @@ def login_required(view):
 @app.context_processor
 def inject_insight_count():
     base = {
+        "static_version": "4",
         "max_chat_message_length": MAX_CHAT_MESSAGE_LENGTH,
         "is_logged_in": bool(session.get("user_id")),
+        "page_title": "HerSignal",
+        "hero_title": "HerSignal",
+        "hero_subtitle": None,
+        "hero_variant": "compact",
+        "hero_id": "page-hero-title",
+        "show_hero": True,
+        "show_journey": False,
+        "show_disclaimer": True,
+        "active_step": None,
     }
     if not session.get("user_id"):
         return {**base, "insight_count": 0}
@@ -152,6 +214,72 @@ def inject_insight_count():
     except Exception:
         n = 0
     return {**base, "insight_count": n}
+
+
+def _layout(chat=False, checker=False, results=False, insights=False, **kwargs):
+    """Default template layout variables for pages."""
+    active_step = None
+    if chat:
+        active_step = "chat"
+    elif checker:
+        active_step = "checker"
+    elif results:
+        active_step = "results"
+    elif insights:
+        active_step = "insights"
+    defaults = {
+        "hero_variant": "compact",
+        "show_hero": True,
+        "show_journey": active_step is not None,
+        "show_disclaimer": True,
+        "active_step": active_step,
+    }
+    defaults.update(kwargs)
+    return defaults
+
+
+def _symptom_layout(**kwargs):
+    return _layout(
+        checker=True,
+        page_title="Symptom checker — HerSignal",
+        hero_title="Symptom insight checker",
+        hero_subtitle="Answer yes, no, or maybe—HerSignal maps responses into hormonal, metabolic, and inflammatory patterns.",
+        hero_id="symptom-page-title",
+        **kwargs,
+    )
+
+
+def _results_layout(**kwargs):
+    return _layout(
+        results=True,
+        page_title="Your results — HerSignal",
+        hero_title="Your pattern summary",
+        hero_subtitle="Educational category scores from your latest check—not a diagnosis.",
+        hero_id="results-hero-title",
+        **kwargs,
+    )
+
+
+def _insights_layout(**kwargs):
+    return _layout(
+        insights=True,
+        page_title="My insights — HerSignal",
+        hero_title="My insights",
+        hero_subtitle="Private timeline of your category scores across checks.",
+        hero_id="insights-hero-title",
+        **kwargs,
+    )
+
+
+def _retake_layout(**kwargs):
+    return _layout(
+        insights=True,
+        page_title="Follow-up check — HerSignal",
+        hero_title="Follow-up insight check",
+        hero_subtitle="A shorter check compared with your most recent saved insight.",
+        hero_id="retake-page-title",
+        **kwargs,
+    )
 
 
 @app.route("/health")
@@ -214,7 +342,15 @@ def home():
             faq_response=None,
             faq_error=None,
             user_name=user_name,
-            user_message=None
+            user_message=None,
+            **_layout(
+                chat=True,
+                page_title="HerSignal",
+                hero_variant="landing",
+                hero_title="HerSignal",
+                hero_subtitle="Explore PCOS questions and symptom patterns with clear, structured educational support.",
+                hero_id="site-title",
+            ),
         )
     except Exception as error:
         app.logger.exception("Error loading home page: %s", error)
@@ -223,7 +359,8 @@ def home():
             faq_response="HerSignal could not load the page properly just now. Please refresh and try again.",
             faq_error="Something went wrong while loading the page.",
             user_name=None,
-            user_message=None
+            user_message=None,
+            **_layout(chat=True, hero_variant="landing", hero_id="site-title"),
         ), 500
 
 
@@ -241,7 +378,8 @@ def set_name():
                 faq_response=None,
                 faq_error="Please enter your name before continuing.",
                 user_name=None,
-                user_message=None
+                user_message=None,
+                **_layout(chat=True, hero_variant="landing", hero_id="site-title"),
             )
 
         session["user_name"] = user_name
@@ -255,7 +393,8 @@ def set_name():
             faq_response=None,
             faq_error="HerSignal could not save your name just now. Please try again.",
             user_name=None,
-            user_message=None
+            user_message=None,
+            **_layout(chat=True, hero_variant="landing", hero_id="site-title"),
         ), 500
 
 
@@ -281,6 +420,14 @@ def _ask_render(user_name, faq_response, faq_error, user_message, status=200):
             "index.html",
             user_name=user_name,
             **payload,
+            **_layout(
+                chat=True,
+                page_title="HerSignal",
+                hero_variant="landing",
+                hero_title="HerSignal",
+                hero_subtitle="Explore PCOS questions and symptom patterns with clear, structured educational support.",
+                hero_id="site-title",
+            ),
         ),
         status,
     )
@@ -440,6 +587,7 @@ def my_insights():
             compare_select_a=compare_select_a,
             compare_select_b=compare_select_b,
             load_error=None,
+            **_insights_layout(),
         )
     except Exception as exc:
         app.logger.exception("Failed to load my-insights for user %s: %s", uid, exc)
@@ -456,6 +604,7 @@ def my_insights():
                 "HerSignal could not load your insights timeline. "
                 "Try refreshing the page. If this keeps happening, stop the app and run it again from the project folder."
             ),
+            **_insights_layout(),
         ), 500
 
 
@@ -483,6 +632,7 @@ def retake_insight():
             user_name=user_name,
             symptom_error=None,
             submitted_answers=None,
+            **_retake_layout(),
         )
 
     if not retake_questions:
@@ -494,6 +644,7 @@ def retake_insight():
                 user_name=user_name,
                 symptom_error="The follow-up questionnaire could not be loaded right now.",
                 submitted_answers=None,
+                **_retake_layout(),
             ),
             500,
         )
@@ -513,6 +664,7 @@ def retake_insight():
                 user_name=user_name,
                 symptom_error="Please answer every question using yes, no, or maybe.",
                 submitted_answers=submitted_answers,
+                **_retake_layout(),
             )
         responses[sid] = norm_ans
 
@@ -578,6 +730,11 @@ def retake_insight():
         dominant_note=dominant_note,
         reflection_bullets=reflection_bullets,
         saved_insight=saved_insight,
+        **_results_layout(
+            hero_title="Follow-up comparison",
+            hero_subtitle="Scaled educational comparison with your previous saved insight.",
+            hero_id="followup-hero-title",
+        ),
     )
 
 
@@ -597,7 +754,8 @@ def symptoms_page():
                 questions=[],
                 submitted_answers=None,
                 symptom_error="The symptom questions could not be loaded right now. Please try again later.",
-                user_name=user_name
+                user_name=user_name,
+                **_symptom_layout(),
             ), 500
 
         return render_template(
@@ -605,7 +763,8 @@ def symptoms_page():
             questions=questions,
             submitted_answers=None,
             symptom_error=None,
-            user_name=user_name
+            user_name=user_name,
+            **_symptom_layout(),
         )
 
     except FileNotFoundError as error:
@@ -615,7 +774,8 @@ def symptoms_page():
             questions=[],
             submitted_answers=None,
             symptom_error="The symptom question file is missing at the moment.",
-            user_name=user_name
+            user_name=user_name,
+            **_symptom_layout(),
         ), 500
 
     except Exception as error:
@@ -625,7 +785,8 @@ def symptoms_page():
             questions=[],
             submitted_answers=None,
             symptom_error="HerSignal could not load the symptom checker just now. Please try again.",
-            user_name=user_name
+            user_name=user_name,
+            **_symptom_layout(),
         ), 500
 
 
@@ -646,7 +807,8 @@ def symptom_checker():
                 questions=[],
                 submitted_answers=None,
                 symptom_error="The symptom questions could not be loaded right now. Please try again later.",
-                user_name=user_name
+                user_name=user_name,
+                **_symptom_layout(),
             ), 500
 
         responses = {}
@@ -663,7 +825,8 @@ def symptom_checker():
                     questions=questions,
                     submitted_answers=submitted_answers,
                     symptom_error="Please answer every question using yes, no, or maybe.",
-                    user_name=user_name
+                    user_name=user_name,
+                    **_symptom_layout(),
                 )
 
             responses[symptom_id] = normalised
@@ -725,6 +888,7 @@ def symptom_checker():
             chart_path=chart_path,
             user_name=user_name,
             saved_insight=saved_insight,
+            **_results_layout(),
         )
 
     except FileNotFoundError as error:
@@ -734,7 +898,8 @@ def symptom_checker():
             questions=[],
             submitted_answers=submitted_answers,
             symptom_error="HerSignal could not access one of the files needed to process your answers.",
-            user_name=user_name
+            user_name=user_name,
+            **_symptom_layout(),
         ), 500
 
     except ValueError as error:
@@ -744,7 +909,8 @@ def symptom_checker():
             questions=load_symptom_questions() if callable(load_symptom_questions) else [],
             submitted_answers=submitted_answers,
             symptom_error="HerSignal could not organise your responses properly. Please try again.",
-            user_name=user_name
+            user_name=user_name,
+            **_symptom_layout(),
         ), 500
 
     except Exception as error:
@@ -754,7 +920,8 @@ def symptom_checker():
             questions=load_symptom_questions() if callable(load_symptom_questions) else [],
             submitted_answers=submitted_answers,
             symptom_error="Something went wrong while generating your insight. Please try again.",
-            user_name=user_name
+            user_name=user_name,
+            **_symptom_layout(),
         ), 500
 
 
@@ -966,6 +1133,7 @@ def export_results():
             chart_path=session.get("latest_chart_path"),
             user_name=user_name,
             saved_insight=False,
+            **_results_layout(),
         ), 500
 
 
@@ -982,7 +1150,8 @@ def page_not_found(error):
         faq_response="That page could not be found. Please return to the main HerSignal pages and try again.",
         faq_error="The page you tried to open does not exist.",
         user_name=user_name,
-        user_message=None
+        user_message=None,
+        **_layout(chat=True, hero_variant="landing", hero_id="site-title"),
     ), 404
 
 
@@ -999,7 +1168,8 @@ def internal_server_error(error):
         faq_response="HerSignal ran into a problem while processing that request. Please try again.",
         faq_error="An unexpected server error occurred.",
         user_name=user_name,
-        user_message=None
+        user_message=None,
+        **_layout(chat=True, hero_variant="landing", hero_id="site-title"),
     ), 500
 
 
