@@ -1,0 +1,752 @@
+/**
+ * HerSignal Gen Z creative motion — signal scan, constellation, moodboard, story.
+ */
+
+/* ── Signal scan loading ── */
+.hs-loading-card.signal-scan-active {
+    position: relative;
+    overflow: hidden;
+}
+
+.hs-loading-card.signal-scan-active::after {
+    content: "";
+    position: absolute;
+    inset: -40% 0;
+    background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(200, 150, 220, 0.45) 50%,
+        transparent 60%
+    );
+    animation: hsSignalScan 1.8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes hsSignalScan {
+    0% {
+        transform: translateX(-120%);
+    }
+    100% {
+        transform: translateX(120%);
+    }
+}
+
+.hs-loading-message.glitch-label {
+    animation: hsSoftGlitch 2.4s ease-in-out infinite;
+}
+
+@keyframes hsSoftGlitch {
+    0%,
+    92%,
+    100% {
+        opacity: 1;
+        transform: none;
+        filter: none;
+    }
+    93% {
+        opacity: 0.85;
+        transform: translateX(1px);
+        filter: blur(0.4px);
+    }
+    95% {
+        opacity: 1;
+        transform: translateX(-1px);
+    }
+}
+
+.category-orbit {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 12px;
+}
+
+.category-orbit-ring {
+    position: absolute;
+    inset: 0;
+    animation: hsOrbitSpin 8s linear infinite;
+}
+
+.category-orbit-dot {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    margin: -5px 0 0 -5px;
+    transform-origin: 0 -42px;
+    box-shadow: 0 0 10px currentColor;
+}
+
+.category-orbit-dot--hormonal {
+    color: #b94f87;
+    transform: rotate(0deg) translateY(-42px);
+}
+
+.category-orbit-dot--metabolic {
+    color: #7a4f8a;
+    transform: rotate(120deg) translateY(-42px);
+}
+
+.category-orbit-dot--inflammatory {
+    color: #c97a4a;
+    transform: rotate(240deg) translateY(-42px);
+}
+
+@keyframes hsOrbitSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.hs-completion-ring {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    border: 3px solid rgba(235, 205, 221, 0.5);
+    position: relative;
+}
+
+.hs-completion-ring::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: var(--hs-primary);
+    opacity: 0;
+}
+
+.hs-completion-ring.is-complete::before {
+    animation: hsRingComplete 0.9s var(--hs-ease-out) forwards;
+}
+
+@keyframes hsRingComplete {
+    to {
+        opacity: 1;
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Aura reveal results ── */
+.aura-reveal-card {
+    opacity: 0;
+    filter: blur(10px);
+    transform: scale(0.98);
+}
+
+.aura-reveal-card.aura-reveal-ready {
+    animation: hsAuraBloom 1s var(--hs-ease-out) forwards;
+}
+
+@keyframes hsAuraBloom {
+    to {
+        opacity: 1;
+        filter: blur(0);
+        transform: scale(1);
+        box-shadow:
+            0 12px 40px var(--hs-shadow-soft),
+            0 0 48px rgba(201, 122, 168, 0.12);
+    }
+}
+
+.results-meaning-feature.aura-reveal-ready {
+    animation: hsAuraBloom 0.85s 0.2s var(--hs-ease-out) forwards;
+}
+
+/* ── Symptom constellation ── */
+.signal-constellation-wrap {
+    text-align: center;
+    margin: 0 0 20px;
+    padding: 16px;
+    border-radius: var(--hs-radius-md);
+    background: linear-gradient(145deg, rgba(255, 248, 252, 0.9), rgba(255, 255, 255, 0.6));
+    border: 1px solid rgba(235, 205, 221, 0.6);
+}
+
+.signal-constellation-label {
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--hs-primary);
+}
+
+.signal-constellation {
+    width: min(220px, 100%);
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.constellation-dot {
+    fill: rgba(185, 79, 135, 0.25);
+    transition: fill 0.4s ease, r 0.35s ease;
+}
+
+.constellation-dot.is-lit {
+    fill: #b94f87;
+    filter: drop-shadow(0 0 6px rgba(185, 79, 135, 0.55));
+}
+
+.constellation-line {
+    stroke: rgba(185, 79, 135, 0.35);
+    stroke-width: 1.2;
+    stroke-dasharray: 120;
+    stroke-dashoffset: 120;
+    transition: stroke-dashoffset 1s var(--hs-ease-out);
+}
+
+.constellation-line.is-drawn {
+    stroke-dashoffset: 0;
+}
+
+/* ── Card stack swipe ── */
+.symptom-form--stepped .question-stack {
+    position: relative;
+    min-height: 12rem;
+    margin-bottom: 8px;
+}
+
+.symptom-form--stepped .question-block {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 1;
+    background: var(--hs-surface);
+    border-radius: var(--hs-radius-md);
+    padding: 4px 2px 8px;
+    box-shadow: 0 8px 24px var(--hs-shadow-soft);
+}
+
+.symptom-form--stepped .question-block.question-block--active {
+    z-index: 3;
+    animation: hsCardStackIn 0.45s var(--hs-ease-out) forwards;
+}
+
+.symptom-form--stepped .question-block.question-block--leaving {
+    z-index: 2;
+    animation: hsCardStackOut 0.38s var(--hs-ease-soft) forwards;
+}
+
+@keyframes hsCardStackIn {
+    from {
+        opacity: 0;
+        transform: translateY(28px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes hsCardStackOut {
+    to {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.98);
+    }
+}
+
+/* ── Insight story modal ── */
+.insight-story-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 11000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.insight-story-modal[hidden] {
+    display: none !important;
+}
+
+.insight-story-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(60, 42, 53, 0.45);
+    backdrop-filter: blur(6px);
+}
+
+.insight-story-panel {
+    position: relative;
+    z-index: 1;
+    width: min(420px, 100%);
+    padding: 28px 24px 22px;
+    animation: hsAuraBloom 0.55s var(--hs-ease-out) both;
+}
+
+.insight-story-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    border: none;
+    background: transparent;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: var(--hs-muted);
+    cursor: pointer;
+}
+
+.insight-story-kicker {
+    margin: 0 0 8px;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--hs-primary);
+    font-weight: 600;
+}
+
+.insight-story-slide-title {
+    margin: 0 0 14px;
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+    color: var(--hs-accent);
+}
+
+.insight-story-slide-body {
+    margin: 0 0 20px;
+    line-height: 1.7;
+    min-height: 4.5rem;
+    color: var(--hs-text);
+}
+
+.insight-story-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.insight-story-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    padding: 0;
+    background: #ebcddd;
+    cursor: pointer;
+}
+
+.insight-story-dot.is-active {
+    background: var(--hs-primary);
+    transform: scale(1.15);
+}
+
+.insight-story-nav {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.insight-story-foot {
+    margin: 16px 0 0;
+    text-align: center;
+}
+
+/* ── Moodboard tiles ── */
+.home-feature-grid--moodboard {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.moodboard-tile {
+    opacity: 0;
+    transform: translateY(22px) rotate(var(--tile-tilt, 0deg));
+    transition:
+        opacity 0.6s var(--hs-ease-out),
+        transform 0.6s var(--hs-ease-out),
+        box-shadow var(--hs-duration) var(--hs-ease-out);
+}
+
+.moodboard-tile.is-visible {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+}
+
+.moodboard-tile:nth-child(1) {
+    --tile-tilt: -1.2deg;
+}
+.moodboard-tile:nth-child(2) {
+    --tile-tilt: 0.8deg;
+}
+.moodboard-tile:nth-child(3) {
+    --tile-tilt: -0.6deg;
+}
+.moodboard-tile:nth-child(4) {
+    --tile-tilt: 1deg;
+}
+.moodboard-tile:nth-child(5) {
+    --tile-tilt: -0.9deg;
+}
+
+/* ── Signal wave divider ── */
+.signal-wave-divider {
+    height: 28px;
+    margin: 20px 0;
+    overflow: hidden;
+    opacity: 0.7;
+}
+
+.signal-wave-divider svg {
+    width: 200%;
+    height: 100%;
+    animation: hsWaveDrift 12s linear infinite;
+}
+
+@keyframes hsWaveDrift {
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* ── Breathing cards ── */
+.breathing-card {
+    animation: hsBreathe 4s ease-in-out infinite;
+}
+
+@keyframes hsBreathe {
+    0%,
+    100% {
+        box-shadow: 0 8px 24px var(--hs-shadow-soft);
+    }
+    50% {
+        box-shadow:
+            0 12px 32px var(--hs-shadow-soft),
+            0 0 28px rgba(201, 122, 168, 0.14);
+    }
+}
+
+/* ── Polaroid education notes ── */
+.polaroid-note {
+    background: #fffdf8;
+    border: 1px solid #f0e0d0;
+    border-radius: 4px 4px var(--hs-radius-sm) var(--hs-radius-sm);
+    padding: 14px 16px;
+    margin: 10px 0;
+    box-shadow: 2px 4px 14px rgba(80, 50, 60, 0.08);
+    transform: rotate(-1.2deg);
+    opacity: 0;
+}
+
+.polaroid-note.is-visible {
+    animation: hsPolaroidIn 0.65s var(--hs-ease-out) forwards;
+}
+
+@keyframes hsPolaroidIn {
+    from {
+        opacity: 0;
+        transform: rotate(-4deg) translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: rotate(-1.2deg) translateY(0);
+    }
+}
+
+/* ── Chat cascade ── */
+.chat-bubble.user-bubble.cascade-in {
+    animation: hsChatFromRight 0.45s var(--hs-ease-out) both;
+}
+
+.chat-bubble.bot-bubble.cascade-in {
+    animation: hsChatFromLeft 0.55s var(--hs-ease-out) both;
+}
+
+.chat-label.cascade-in {
+    animation: hsFadeUp 0.4s var(--hs-ease-out) both;
+}
+
+.suggestion-chip.cascade-in {
+    animation: hsStaggerIn 0.4s var(--hs-ease-out) both;
+}
+
+@keyframes hsChatFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes hsChatFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ── Glow trail (hero CTAs) ── */
+.glow-trail-cta {
+    position: relative;
+    overflow: hidden;
+}
+
+.glow-trail-cta::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: conic-gradient(
+        from 0deg,
+        transparent,
+        rgba(201, 122, 168, 0.5),
+        transparent,
+        rgba(168, 130, 200, 0.4),
+        transparent
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    animation: hsGlowTrail 4s linear infinite;
+    pointer-events: none;
+}
+
+.glow-trail-cta:hover::before {
+    opacity: 1;
+}
+
+@keyframes hsGlowTrail {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Insights timeline growth ── */
+.insight-timeline {
+    position: relative;
+    padding-left: 28px;
+}
+
+.insight-timeline::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 0;
+    width: 3px;
+    height: 0;
+    background: linear-gradient(180deg, #b94f87, #d4a0c4);
+    border-radius: 999px;
+    box-shadow: 0 0 10px rgba(185, 79, 135, 0.35);
+    transition: height 1.2s var(--hs-ease-out);
+}
+
+.insight-timeline.is-grown::before {
+    height: 100%;
+}
+
+.insight-snapshot-card.timeline-item {
+    opacity: 0;
+    transform: translateX(-8px);
+}
+
+.insight-snapshot-card.timeline-item.is-visible {
+    animation: hsTimelineItem 0.55s var(--hs-ease-out) forwards;
+}
+
+@keyframes hsTimelineItem {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ── Before vs now follow-up ── */
+.follow-up-compare-grid.before-now-ready .follow-up-compare-col:first-child {
+    animation: hsSlideFromLeft 0.65s var(--hs-ease-out) both;
+}
+
+.follow-up-compare-grid.before-now-ready .follow-up-compare-col--current {
+    animation: hsSlideFromRight 0.65s 0.15s var(--hs-ease-out) both;
+}
+
+.follow-up-vs-badge {
+    display: inline-block;
+    margin: 12px auto;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: var(--hs-secondary-bg);
+    border: 1px solid var(--hs-secondary-border);
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--hs-accent);
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+.follow-up-vs-badge.is-visible {
+    animation: hsStickerPop 0.5s var(--hs-ease-out) forwards;
+}
+
+@keyframes hsSlideFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes hsSlideFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ── Liquid category tabs ── */
+.category-tab-bar {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin: 0 0 18px;
+    padding: 6px;
+    background: rgba(255, 247, 251, 0.85);
+    border-radius: 999px;
+    border: 1px solid var(--hs-border);
+}
+
+.category-tab {
+    position: relative;
+    z-index: 1;
+    border: none;
+    background: transparent;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--hs-muted);
+    cursor: pointer;
+    transition: color 0.25s ease;
+}
+
+.category-tab.is-active {
+    color: var(--hs-accent);
+}
+
+.category-tab-pill {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    height: calc(100% - 12px);
+    border-radius: 999px;
+    background: linear-gradient(135deg, #f4d7e6, #fff8fc);
+    border: 1px solid rgba(201, 95, 145, 0.35);
+    box-shadow: 0 4px 14px rgba(185, 79, 135, 0.15);
+    transition:
+        transform 0.4s var(--hs-ease-out),
+        width 0.4s var(--hs-ease-out);
+    z-index: 0;
+}
+
+/* ── Sticker badges ── */
+.sticker-badge,
+.score-badge.sticker-badge {
+    animation: hsStickerPop 0.55s var(--hs-ease-out) both;
+}
+
+@keyframes hsStickerPop {
+    0% {
+        opacity: 0;
+        transform: scale(0.88) rotate(-6deg);
+    }
+    70% {
+        transform: scale(1.04) rotate(2deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+/* ── Tap ripple ── */
+.option-pill {
+    position: relative;
+    overflow: hidden;
+}
+
+.option-pill .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(185, 79, 135, 0.28);
+    transform: scale(0);
+    animation: hsRipple 0.55s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes hsRipple {
+    to {
+        transform: scale(2.8);
+        opacity: 0;
+    }
+}
+
+/* ── Insight drawer panels ── */
+.results-panel.insight-drawer summary {
+    transition: background 0.25s ease;
+}
+
+.results-panel.insight-drawer[open] .results-panel__body {
+    animation: hsDrawerOpen 0.45s var(--hs-ease-out) both;
+}
+
+@keyframes hsDrawerOpen {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 2000px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hs-loading-card.signal-scan-active::after,
+    .category-orbit-ring,
+    .signal-wave-divider svg,
+    .breathing-card,
+    .glow-trail-cta::before,
+    .hs-loading-message.glitch-label {
+        animation: none !important;
+    }
+
+    .aura-reveal-card,
+    .moodboard-tile,
+    .polaroid-note,
+    .insight-snapshot-card.timeline-item {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+        animation: none !important;
+    }
+
+    .symptom-form--stepped .question-block {
+        position: static !important;
+    }
+}

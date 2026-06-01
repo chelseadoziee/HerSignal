@@ -30,6 +30,8 @@
         <div class="symptom-progress-bar" aria-hidden="true"><span class="symptom-progress-fill"></span></div>
     </div>
 
+    {% include '_signal_constellation.html' %}
+
     <form action="{{ url_for('retake_insight') }}" method="POST" class="symptom-form" id="symptom-form">
         {% set category_labels = {
             'hormonal': 'Hormonal patterns',

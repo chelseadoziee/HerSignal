@@ -168,84 +168,6 @@
         fill.style.width = fill.style.width || "0%";
     }
 
-    function initSymptomSubmitLoading() {
-        const form = document.querySelector(".symptom-form");
-        const overlay = document.getElementById("hs-loading-overlay");
-        const messageEl = document.getElementById("hs-loading-message");
-        if (!form || !overlay || !messageEl) {
-            return;
-        }
-
-        const messages = [
-            "Analysing your symptom pattern...",
-            "Mapping hormonal, metabolic, and inflammatory signals...",
-            "Preparing your educational insight...",
-        ];
-
-        let messageIndex = 0;
-        let typingTimer = null;
-
-        function typeMessage(text) {
-            if (motionReduced()) {
-                messageEl.textContent = text;
-                return;
-            }
-            messageEl.textContent = "";
-            let i = 0;
-            clearInterval(typingTimer);
-            typingTimer = setInterval(() => {
-                messageEl.textContent = text.slice(0, i + 1);
-                i += 1;
-                if (i >= text.length) {
-                    clearInterval(typingTimer);
-                }
-            }, 28);
-        }
-
-        form.addEventListener(
-            "submit",
-            (event) => {
-                if (form.dataset.hsSubmitting === "1") {
-                    return;
-                }
-
-                const blocks = form.querySelectorAll(".question-block");
-                let incomplete = false;
-                blocks.forEach((block) => {
-                    const radios = block.querySelectorAll('input[type="radio"]');
-                    if (!Array.from(radios).some((r) => r.checked)) {
-                        incomplete = true;
-                    }
-                });
-                if (incomplete) {
-                    return;
-                }
-
-                if (motionReduced()) {
-                    return;
-                }
-
-                event.preventDefault();
-                form.dataset.hsSubmitting = "1";
-                overlay.hidden = false;
-                overlay.classList.add("is-active");
-                typeMessage(messages[0]);
-
-                const rotate = setInterval(() => {
-                    messageIndex = (messageIndex + 1) % messages.length;
-                    typeMessage(messages[messageIndex]);
-                }, 900);
-
-                setTimeout(() => {
-                    clearInterval(rotate);
-                    overlay.classList.remove("is-active");
-                    form.submit();
-                }, 1400);
-            },
-            true
-        );
-    }
-
     function initScoreAnimations() {
         const cards = document.querySelectorAll(".score-card[data-chart-category]");
         if (!cards.length) {
@@ -470,7 +392,6 @@
         observeHowItWorks();
         initSymptomStepper();
         enhanceSymptomProgress();
-        initSymptomSubmitLoading();
         initScoreAnimations();
         initResultsStagger();
         initChartReveal();

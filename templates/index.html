@@ -17,6 +17,12 @@
     </div>
 </section>
 
+<div class="signal-wave-divider" aria-hidden="true">
+    <svg viewBox="0 0 1200 28" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="rgba(201, 122, 168, 0.25)" d="M0,14 Q150,0 300,14 T600,14 T900,14 T1200,14 L1200,28 L0,28 Z"/>
+    </svg>
+</div>
+
 {% if is_logged_in and not insight_count %}
 <section class="card banner-info hs-reveal hs-reveal--d1" aria-label="Insights tip">
     <p class="section-intro mb-0">
@@ -33,28 +39,44 @@
 
 <section class="home-helps-section hs-reveal hs-reveal--d2" aria-labelledby="home-helps-heading">
     <h2 id="home-helps-heading" class="home-section-title">What HerSignal helps with</h2>
-    <div class="home-feature-grid">
-        <article class="card home-feature-card hs-lift-card">
-            <h3>Understand symptom patterns</h3>
-            <p>Map your answers into hormonal, metabolic, and inflammatory educational scores so symptoms feel less random.</p>
+    <div class="home-feature-grid home-feature-grid--moodboard">
+        <article class="card home-feature-card moodboard-tile hs-lift-card glow-card">
+            <h3>Symptom awareness</h3>
+            <p>Map yes, no, and maybe answers into clear educational categories so symptoms feel less random.</p>
             <a href="{{ url_for('symptoms_page') }}" class="text-link">Start symptom checker</a>
         </article>
-        <article class="card home-feature-card hs-lift-card">
-            <h3>Ask PCOS questions</h3>
-            <p>Chat with HerSignal for calm, structured education about symptoms, cycles, and everyday concerns.</p>
+        <article class="card home-feature-card moodboard-tile hs-lift-card glow-card">
+            <h3>Pattern insight</h3>
+            <p>See hormonal, metabolic, and inflammatory signals in one calm visual summary.</p>
+            <a href="{{ url_for('symptoms_page') }}" class="text-link">View your pattern</a>
+        </article>
+        <article class="card home-feature-card moodboard-tile hs-lift-card glow-card">
+            <h3>PCOS education</h3>
+            <p>Ask HerSignal structured questions about cycles, skin, energy, and everyday concerns.</p>
             <a href="{% if user_name %}#ask-heading{% else %}{{ url_for('home') }}{% endif %}" class="text-link">Ask a question</a>
         </article>
-        <article class="card home-feature-card hs-lift-card">
-            <h3>Track your insights</h3>
-            <p>Save snapshots when you are logged in and notice how your pattern shifts across checks over time.</p>
+        <article class="card home-feature-card moodboard-tile hs-lift-card glow-card">
+            <h3>Follow-up reflection</h3>
+            <p>Compare checks over time when you are logged in and notice gentle shifts.</p>
             {% if is_logged_in %}
             <a href="{{ url_for('my_insights') }}" class="text-link">Open insights</a>
             {% else %}
             <a href="{{ url_for('auth.register') }}" class="text-link">Create an account</a>
             {% endif %}
         </article>
+        <article class="card home-feature-card moodboard-tile hs-lift-card glow-card">
+            <h3>Exportable summary</h3>
+            <p>Download a PDF snapshot of your latest educational scores for your own records.</p>
+            <a href="{{ url_for('symptoms_page') }}" class="text-link">Generate results first</a>
+        </article>
     </div>
 </section>
+
+<div class="signal-wave-divider" aria-hidden="true">
+    <svg viewBox="0 0 1200 28" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="rgba(168, 130, 200, 0.22)" d="M0,18 Q200,4 400,16 T800,12 T1200,18 L1200,28 L0,28 Z"/>
+    </svg>
+</div>
 
 {% if not user_name %}
 <div class="auth-split hs-reveal hs-reveal--d3">

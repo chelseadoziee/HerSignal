@@ -34,7 +34,7 @@
     <section class="card retake-cta-card insights-dash-card">
         <h2 class="retake-cta-title">Follow-up check</h2>
         <p class="section-intro mb-0">Short retake compared with your last saved insight.</p>
-        <a href="{{ url_for('retake_insight') }}" class="primary-btn retake-cta-btn animated-cta">Start follow-up</a>
+        <a href="{{ url_for('retake_insight') }}" class="primary-btn retake-cta-btn animated-cta glow-trail-cta">Start follow-up</a>
     </section>
     <section class="card insights-stats-card insights-dash-card">
         <h2 class="text-title-sm">Latest check</h2>
@@ -134,8 +134,9 @@
     <p class="section-intro mb-0 text-caption">Timeline (newest first). <strong>Δ vs last</strong> = change from the previous check.</p>
 </section>
 
+<div class="insight-timeline">
 {% for entry in entries %}
-<article class="card insight-snapshot-card insight-snapshot-card--{{ entry.test_type | default('baseline') }}">
+<article class="card insight-snapshot-card insight-snapshot-card--{{ entry.test_type | default('baseline') }} timeline-item glow-card">
     <header class="insight-snapshot-header">
         <time class="insight-snapshot-date" datetime="{{ entry.created_at.isoformat() }}">
             {{ entry.created_at.strftime('%d %B %Y') }} · {{ entry.created_at.strftime('%H:%M') }}
@@ -166,8 +167,9 @@
     </div>
 </article>
 {% endfor %}
+</div>
 
-<section class="card insight-footer-card">
+<section class="card insight-footer-card breathing-card">
     <p class="section-intro mb-0 text-caption">
         New baseline from the <a href="{{ url_for('symptoms_page') }}">symptom checker</a>. Scores are educational guides for reflection, not diagnosis.
     </p>

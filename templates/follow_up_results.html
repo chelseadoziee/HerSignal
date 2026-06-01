@@ -4,7 +4,7 @@
 {% block body_class %}page-follow-up{% endblock %}
 
 {% block content %}
-<section class="card follow-up-results-card glow-card">
+<section class="card follow-up-results-card glow-card aura-reveal-card">
     {% if saved_insight %}
     <div class="banner-success insight-saved-banner" role="status">
         Follow-up saved to <a href="{{ url_for('my_insights') }}">Insights</a>.
@@ -47,7 +47,7 @@
         </div>
     </div>
 
-    <div class="follow-up-narrative-block result-info-card">
+    <div class="follow-up-narrative-block result-info-card breathing-card">
         <h3>Reflection</h3>
         <p class="section-intro">{{ overall_summary }}</p>
         {% if dominant_note %}<p class="section-intro">{{ dominant_note }}</p>{% endif %}

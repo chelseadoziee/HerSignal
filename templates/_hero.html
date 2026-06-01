@@ -14,7 +14,7 @@
         {% endif %}
         {% if hero_variant == 'landing' %}
         <div class="hero-actions btn-row btn-row--center">
-            <a href="{{ url_for('symptoms_page') }}" class="primary-btn hs-btn-lift animated-cta">Start symptom checker</a>
+            <a href="{{ url_for('symptoms_page') }}" class="primary-btn hs-btn-lift animated-cta glow-trail-cta">Start symptom checker</a>
             {% if is_logged_in %}
             <a href="{{ url_for('my_insights') }}" class="secondary-btn hs-btn-lift animated-cta">Open insights</a>
             {% else %}

@@ -7,6 +7,7 @@
     {% include '_head_assets.html' %}
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v={{ static_version | default('1') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/hersignal-motion.css') }}?v={{ static_version | default('1') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hersignal-genz-motion.css') }}?v={{ static_version | default('1') }}">
     {% block extra_head %}{% endblock %}
 </head>
 <body class="hs-page-enter {% block body_class %}{% endblock %}">
@@ -45,6 +46,7 @@ if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
 
     {% include '_loading_overlay.html' %}
     <script src="{{ url_for('static', filename='js/hersignal-motion.js') }}?v={{ static_version | default('1') }}"></script>
+    <script src="{{ url_for('static', filename='js/hersignal-genz-motion.js') }}?v={{ static_version | default('1') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

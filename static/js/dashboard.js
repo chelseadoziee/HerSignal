@@ -50,7 +50,7 @@ function highlightTopScoreCards() {
 
             if (!item.card.querySelector(".score-badge")) {
                 const badge = document.createElement("span");
-                badge.className = "score-badge";
+                badge.className = "score-badge sticker-badge";
                 badge.textContent = "Most noticeable";
                 item.card.appendChild(badge);
             }
@@ -461,6 +461,7 @@ function enhanceFaqAjaxSubmit() {
             }
 
             panel.innerHTML = err + thread;
+            document.dispatchEvent(new CustomEvent("hs:faq-updated"));
             panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
         } catch {
             panel.innerHTML = `

@@ -5,7 +5,14 @@
 {% block body_class %}page-results{% endblock %}
 
 {% block content %}
-<section class="card results-card glow-card">
+{% set h = scores.hormonal if scores and scores.hormonal is not none else 0 %}
+{% set m = scores.metabolic if scores and scores.metabolic is not none else 0 %}
+{% set i = scores.inflammatory if scores and scores.inflammatory is not none else 0 %}
+{% if h >= m and h >= i %}{% set top_name, top_val = 'Hormonal', h %}
+{% elif m >= h and m >= i %}{% set top_name, top_val = 'Metabolic', m %}
+{% else %}{% set top_name, top_val = 'Inflammatory', i %}{% endif %}
+
+<section class="card results-card glow-card aura-reveal-card">
     {% if saved_insight %}
     <div class="banner-success insight-saved-banner" role="status">
         Saved to <a href="{{ url_for('my_insights') }}">Insights</a>—summary scores are on your timeline.
@@ -31,6 +38,14 @@
         <a href="{{ url_for('export_results') }}" class="secondary-btn animated-cta">Download PDF</a>
         <a href="{{ url_for('symptoms_page') }}" class="secondary-btn animated-cta">Checker again</a>
         <a href="{{ url_for('home') }}" class="secondary-btn animated-cta">Chat</a>
+        <button type="button" class="secondary-btn animated-cta" id="open-insight-story">View insight story</button>
+    </div>
+
+    <div class="category-tab-bar" role="tablist" aria-label="Category focus">
+        <span class="category-tab-pill" aria-hidden="true"></span>
+        <button type="button" class="category-tab is-active" role="tab" data-category="hormonal" aria-selected="true">Hormonal</button>
+        <button type="button" class="category-tab" role="tab" data-category="metabolic">Metabolic</button>
+        <button type="button" class="category-tab" role="tab" data-category="inflammatory">Inflammatory</button>
     </div>
 
     <div class="score-cards">
@@ -124,8 +139,10 @@
             <div class="results-supplements-nested">
                 {% for note in result_data.supplement_notes %}
                 {% call results_panel(note.name, note.preview, "results-panel--nested") %}
-                    <p>{{ note.summary }}</p>
-                    {% if note.warning %}<p class="supplement-warning">{{ note.warning }}</p>{% endif %}
+                    <div class="polaroid-note">
+                        <p>{{ note.summary }}</p>
+                        {% if note.warning %}<p class="supplement-warning">{{ note.warning }}</p>{% endif %}
+                    </div>
                 {% endcall %}
                 {% endfor %}
             </div>
@@ -144,6 +161,30 @@
         {% endcall %}
     </div>
 </section>
+
+{% if result_data %}
+<script type="application/json" id="insight-story-data">
+{{ [
+    {
+        "title": "Your strongest signal",
+        "body": top_name ~ " had the highest educational score in this check (" ~ top_val ~ "). This is a reflection guide, not a diagnosis."
+    },
+    {
+        "title": "What may be contributing",
+        "body": (result_data.contributing_preview or "Review contributing symptoms in your full results.") ~ " " ~ (result_data.contributing_intro or "")
+    },
+    {
+        "title": "Your category pattern",
+        "body": (result_data.chart_preview or "") ~ " " ~ (result_data.chart_explanation or "See the pattern chart for hormonal, metabolic, and inflammatory scores.")
+    },
+    {
+        "title": "What to reflect on next",
+        "body": (result_data.note_preview or "") ~ " " ~ (result_data.friendly_note or "Speak with a clinician for personal medical advice.")
+    }
+] | tojson }}
+</script>
+{% include '_insight_story_modal.html' %}
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
