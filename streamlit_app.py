@@ -19,6 +19,12 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import streamlit as st
+import streamlit.components.v1 as components
+
+from streamlit_interactive_chart import (
+    build_interactive_results_html,
+    chart_fallback_data_uri,
+)
 
 MAX_CHAT_MESSAGE_LENGTH = 500
 CATEGORY_LABELS = {
@@ -63,6 +69,38 @@ def esc(text):
     return html.escape(str(text or ""))
 
 
+@st.cache_data(show_spinner=False)
+def logo_data_uri() -> str | None:
+    """Inline logo for HTML blocks (Streamlit does not serve /static like Flask)."""
+    path = ROOT / "static" / "images" / "heart_logo.png"
+    if not path.is_file():
+        return None
+    import base64
+
+    encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
+
+
+def render_logo_markup(size: str = "hero", alt: str = "HerSignal logo") -> str:
+    """Centered logo markup: landing (130px), sidebar (88px), compact (78px), empty (96px)."""
+    src = logo_data_uri()
+    sizes = {
+        "hero": ("130", "hs-hero-logo"),
+        "sidebar": ("88", "hs-sidebar-logo"),
+        "compact": ("78", "hs-hero-logo hs-hero-logo--compact"),
+        "empty": ("96", "hs-empty-logo"),
+    }
+    width, css_class = sizes.get(size, sizes["hero"])
+    if src:
+        return (
+            f'<div class="hs-image-wrap hs-image-wrap--{size}">'
+            f'<img src="{src}" alt="{esc(alt)}" class="{css_class}" width="{width}" height="{width}" '
+            f'decoding="async" />'
+            f"</div>"
+        )
+    return f'<div class="hs-image-wrap hs-image-wrap--{size}">{HEART_SVG}</div>'
+
+
 def render_html(fragment: str) -> None:
     """
     Render HTML without Streamlit markdown splitting on blank lines inside tags.
@@ -85,24 +123,38 @@ def hs_section():
             yield
 
 
-def render_hero(title: str, subtitle: str):
-    logo_path = ROOT / "static" / "images" / "heart_logo.png"
-    _, mid, _ = st.columns([1, 1, 1])
-    with mid:
-        if logo_path.exists():
-            st.image(str(logo_path), width=110)
-        else:
-            st.markdown(
-                f'<div style="text-align:center">{HEART_SVG}</div>',
-                unsafe_allow_html=True,
-            )
+def render_hero(title: str, subtitle: str, variant: str = "landing"):
+    """Hero block aligned with templates/_hero.html (logo centred above title)."""
+    logo = render_logo_markup("hero" if variant == "landing" else "compact")
+    variant_class = " hs-hero-card--landing" if variant == "landing" else " hs-hero-card--compact"
+    tag = (
+        '<p class="hs-brand-tag">HerSignal insight</p>'
+        if variant == "landing"
+        else ""
+    )
     render_html(
-        f'<div class="hs-hero">'
-        f'<p class="hs-brand-tag">HerSignal insight</p>'
-        f"<h1>{esc(title)}</h1>"
+        f'<header class="hs-hero-card{variant_class}" aria-labelledby="hs-page-hero-title">'
+        f"{logo}"
+        f'<div class="hs-hero-text">'
+        f"{tag}"
+        f'<h1 id="hs-page-hero-title">{esc(title)}</h1>'
         f'<p class="hs-hero-sub">{esc(subtitle)}</p>'
         f"</div>"
+        f"</header>"
     )
+
+
+def render_centered_buttons(primary_label: str, primary_page: str, secondary_label: str, secondary_page: str):
+    """Primary / secondary actions centred under the landing hero (Flask btn-row--center)."""
+    _pad, col_a, col_b, _pad2 = st.columns([0.65, 1.35, 1.35, 0.65])
+    with col_a:
+        if st.button(primary_label, type="primary", use_container_width=True, key=f"nav_{primary_page}"):
+            st.session_state.nav_page = primary_page
+            st.rerun()
+    with col_b:
+        if st.button(secondary_label, use_container_width=True, key=f"nav_{secondary_page}"):
+            st.session_state.nav_page = secondary_page
+            st.rerun()
 
 
 def render_journey(active_page: str):
@@ -141,37 +193,117 @@ def render_feature_cards():
     render_html(f'<div class="hs-feature-grid">{inner}</div>')
 
 
-def render_score_cards(scores: dict):
-    if not scores:
-        return
-    top_key = max(scores, key=scores.get)
-    parts = []
-    labels = {"hormonal": "Hormonal", "metabolic": "Metabolic", "inflammatory": "Inflammatory"}
-    for key in ("hormonal", "metabolic", "inflammatory"):
-        top = " hs-score-card--top" if key == top_key and scores.get(key, 0) > 0 else ""
-        parts.append(
-            f'<div class="hs-score-card{top}">'
-            f"<h4>{labels[key]}</h4>"
-            f'<div class="hs-score-value">{scores.get(key, 0)}</div>'
-            f"</div>"
-        )
-    render_html(f'<div class="hs-score-row">{"".join(parts)}</div>')
-
-
-def render_meaning_block(result_data: dict):
+def meaning_paragraphs(result_data: dict) -> list[str]:
     paragraphs = result_data.get("why_hersignal_paragraphs") or []
     if not paragraphs and result_data.get("why_hersignal_presented_response"):
         paragraphs = [result_data["why_hersignal_presented_response"]]
-    paras = "".join(f"<p>{esc(p)}</p>" for p in paragraphs)
-    foot = esc(result_data.get("general_disclaimer", ""))
-    render_html(
-        f'<section class="hs-meaning">'
-        f'<p class="hs-brand-tag">HerSignal insight</p>'
-        f"<h3>What this may mean</h3>"
-        f"{paras}"
-        f'<p class="hs-meaning-foot">{foot}</p>'
-        f"</section>"
+    return paragraphs
+
+
+def render_interactive_results(scores: dict, result_data: dict, chart_path: str | None):
+    """Radar chart with score-card hover sync (same behaviour as Flask dashboard.js)."""
+    fallback = chart_fallback_data_uri(chart_path, ROOT)
+    html_doc = build_interactive_results_html(
+        scores,
+        meaning_paragraphs(result_data),
+        result_data.get("general_disclaimer", "Educational only. Not a diagnosis or treatment plan."),
+        chart_fallback_src=fallback,
     )
+    components.html(html_doc, height=620, scrolling=False)
+
+
+def _panel_html(title: str, preview: str, body_html: str, nested: bool = False) -> str:
+    nested_class = " hs-results-panel--nested" if nested else ""
+    preview_span = (
+        f'<span class="hs-results-panel__preview">{esc(preview)}</span>' if preview else ""
+    )
+    return (
+        f'<details class="hs-results-panel{nested_class}">'
+        f'<summary class="hs-results-panel__summary">'
+        f'<span class="hs-results-panel__title">{esc(title)}</span>'
+        f"{preview_span}"
+        f"</summary>"
+        f'<div class="hs-results-panel__body">{body_html}</div>'
+        f"</details>"
+    )
+
+
+def render_results_panels(result_data: dict):
+    contrib_body = (
+        f'<p class="hs-card-intro">{esc(result_data.get("contributing_intro", ""))}</p>'
+    )
+    chips = result_data.get("contributing_symptoms") or []
+    if chips:
+        chip_html = "".join(
+            f'<span class="hs-insight-pill">{esc(item.get("label", ""))}</span>' for item in chips
+        )
+        contrib_body += f'<div>{chip_html}</div>'
+    else:
+        contrib_body += '<p class="hs-card-note">No strong contributing symptoms were identified.</p>'
+    panels = [
+        _panel_html(
+            "Contributing symptoms",
+            result_data.get("contributing_preview", ""),
+            contrib_body,
+        ),
+        _panel_html(
+            "Pattern overlap",
+            result_data.get("overlap_preview", ""),
+            f'<p>{esc(result_data.get("pattern_overlap_note", ""))}</p>',
+        ),
+    ]
+
+    notes = result_data.get("supplement_notes") or []
+    supp_inner = f'<p class="hs-card-intro">{esc(result_data.get("supplement_intro", ""))}</p>'
+    if notes:
+        nested_parts = []
+        for note in notes:
+            note_body = f"<p>{esc(note.get('summary', ''))}</p>"
+            if note.get("warning"):
+                note_body += f'<p class="hs-supplement-warning">{esc(note.get("warning"))}</p>'
+            preview_span = (
+                f'<span class="hs-results-panel__preview">{esc(note.get("preview", ""))}</span>'
+                if note.get("preview")
+                else ""
+            )
+            nested_parts.append(
+                f'<details class="hs-results-panel hs-results-panel--nested">'
+                f'<summary class="hs-results-panel__summary">'
+                f'<span class="hs-results-panel__title">{esc(note.get("name", "Note"))}</span>'
+                f"{preview_span}"
+                f"</summary>"
+                f'<div class="hs-results-panel__body">{note_body}</div>'
+                f"</details>"
+            )
+        supp_inner += "".join(nested_parts)
+        supp_inner += (
+            f'<p class="hs-card-note" style="margin-top:14px">'
+            f'{esc(result_data.get("supplement_disclaimer", ""))}</p>'
+        )
+    else:
+        supp_inner += '<p class="hs-card-note">No supplement notes for this pattern.</p>'
+    panels.append(
+        _panel_html(
+            f"Supplement notes ({len(notes)})",
+            result_data.get("supplements_preview", ""),
+            supp_inner,
+        )
+    )
+    panels.append(
+        _panel_html(
+            "Chart explanation",
+            result_data.get("chart_preview", ""),
+            f'<p>{esc(result_data.get("chart_explanation", ""))}</p>',
+        )
+    )
+    panels.append(
+        _panel_html(
+            "Note",
+            result_data.get("note_preview", ""),
+            f'<p>{esc(result_data.get("friendly_note", ""))}</p>',
+        )
+    )
+    render_html(f'<div class="hs-results-panels-stack">{"".join(panels)}</div>')
 
 
 def render_bot_answer(text: str):
@@ -188,6 +320,10 @@ def disclaimer():
         "a diagnosis, or a substitute for care from a qualified clinician."
         "</p>"
     )
+
+
+def render_footer_credit():
+    render_html('<p class="hs-site-credit">By Chelsea Dozie</p>')
 
 
 def init_session_state():
@@ -216,24 +352,29 @@ def page_home():
     render_hero(
         "HerSignal",
         "Explore PCOS questions and symptom patterns with clear, structured educational support.",
+        variant="landing",
+    )
+    render_centered_buttons(
+        "Start symptom checker",
+        "Symptom checker",
+        "View latest results",
+        "Results",
     )
 
-    col_a, col_b = st.columns(2)
-    with col_a:
-        if st.button("Start symptom checker", type="primary", use_container_width=True):
-            st.session_state.nav_page = "Symptom checker"
-            st.rerun()
-    with col_b:
-        if st.button("View latest results", use_container_width=True):
-            st.session_state.nav_page = "Results"
-            st.rerun()
-
     with hs_section():
-        st.markdown("### What HerSignal helps with")
+        render_html(
+            '<section class="hs-dashboard-panel" aria-labelledby="hs-home-helps-heading">'
+            '<h2 id="hs-home-helps-heading" class="hs-dashboard-title">What HerSignal helps with</h2>'
+        )
         render_feature_cards()
+        render_html("</section>")
 
     with hs_section():
-        st.markdown("### Ask HerSignal")
+        render_html(
+            '<section class="hs-dashboard-panel hs-dashboard-panel--chat" '
+            'aria-labelledby="hs-ask-heading">'
+            '<h2 id="hs-ask-heading" class="hs-dashboard-title">Ask HerSignal</h2>'
+        )
         greeting = st.session_state.user_name or "there"
         st.caption(f"Hi {greeting}. Ask about PCOS symptoms, patterns, or everyday questions.")
 
@@ -284,6 +425,16 @@ def page_home():
 
         if st.session_state.last_faq_answer:
             render_bot_answer(st.session_state.last_faq_answer)
+        render_html("</section>")
+
+
+def _symptom_answered_count(questions: list) -> int:
+    total = 0
+    for item in questions:
+        val = st.session_state.get(f"sym_{item['id']}")
+        if val in ("yes", "no", "maybe"):
+            total += 1
+    return total
 
 
 def page_checker():
@@ -291,14 +442,42 @@ def page_checker():
     from logic.result_generator import generate_result_data
     from dashboard.chart_builder import build_symptom_chart
 
+    render_hero(
+        "Understand your pattern",
+        "Answer with yes, no, or maybe. Questions are grouped by category.",
+        variant="compact",
+    )
+
     with hs_section():
-        st.markdown("### Understand your pattern")
-        st.caption("Answer with **yes**, **no**, or **maybe**. Questions are grouped by category.")
+        render_html('<section class="hs-dashboard-panel hs-dashboard-panel--checker">')
+        render_html(
+            '<p class="hs-symptom-draft-note" role="note">'
+            "Answers stay in this session until you submit. The full HerSignal app can save "
+            "summary scores to <strong>Insights</strong> when you are logged in."
+            "</p>"
+        )
 
         questions = load_symptom_questions()
         if not questions:
             st.error("Symptom questions could not be loaded.")
             return
+
+        total_q = len(questions)
+        answered = _symptom_answered_count(questions)
+        pct = int((answered / total_q) * 100) if total_q else 0
+        render_html(
+            f'<div class="hs-symptom-progress" role="region">'
+            f'<p class="hs-symptom-progress-text"><strong>{answered}</strong> of {total_q} answered</p>'
+            f'<div class="hs-symptom-progress-bar" aria-hidden="true">'
+            f'<span class="hs-symptom-progress-fill" style="width:{pct}%"></span>'
+            f"</div></div>"
+        )
+
+        col_back, _ = st.columns([1, 3])
+        with col_back:
+            if st.button("Back to chat", use_container_width=True):
+                st.session_state.nav_page = "Home"
+                st.rerun()
 
         responses = {}
         with st.form("symptom_form", clear_on_submit=False):
@@ -307,7 +486,10 @@ def page_checker():
                 group = [q for q in questions if q.get("category") == category]
                 if not group:
                     continue
-                st.markdown(f"**{CATEGORY_LABELS.get(category, category.title())}**")
+                render_html(
+                    f'<div class="hs-category hs-category--{category}">'
+                    f'<p class="hs-category-title">{esc(CATEGORY_LABELS.get(category, category.title()))}</p>'
+                )
                 for item in group:
                     idx += 1
                     key = item["id"]
@@ -321,9 +503,10 @@ def page_checker():
                         horizontal=True,
                         key=f"sym_{key}",
                     )
-                st.divider()
+                render_html("</div>")
 
             submitted = st.form_submit_button("See my results", type="primary", use_container_width=True)
+        render_html("</section>")
 
     if submitted:
         normalised = {}
@@ -357,86 +540,60 @@ def page_results():
 
     if not scores or not result_data:
         with hs_section():
-            st.info("Complete the symptom checker first to see your pattern summary.")
-            if st.button("Go to symptom checker", type="primary"):
-                st.session_state.nav_page = "Symptom checker"
-                st.rerun()
+            render_html(
+                '<div class="hs-empty-state">'
+                f"{render_logo_markup('empty', alt='')}"
+                "<h2>No results yet</h2>"
+                '<p class="hs-section-intro">Complete the symptom checker to see your pattern summary.</p>'
+                "</div>"
+            )
+            _pad, col_go, _pad2 = st.columns([1, 1.2, 1])
+            with col_go:
+                if st.button("Go to symptom checker", type="primary", use_container_width=True):
+                    st.session_state.nav_page = "Symptom checker"
+                    st.rerun()
         return
 
+    user_name = st.session_state.user_name
+    intro = result_data.get("page_intro", "") or "Your latest educational scores are below."
+    if user_name:
+        intro = f"{user_name}, {intro[0].lower()}{intro[1:]}"
+
+    render_hero(
+        result_data.get("page_title", "Your symptom pattern"),
+        intro,
+        variant="compact",
+    )
+
     with hs_section():
-        st.markdown(f"### {result_data.get('page_title', 'Your symptom pattern')}")
-        st.caption(result_data.get("page_intro", ""))
-        render_score_cards(scores)
+        render_html('<section class="hs-dashboard-panel hs-dashboard-panel--results">')
 
-        chart_path = st.session_state.chart_path
-        if chart_path:
-            full = ROOT / "static" / chart_path
-            if full.exists():
-                st.markdown("**Pattern chart**")
-                st.image(str(full), use_container_width=True)
-                st.caption("Educational scores only. Not a clinical measurement.")
+        btn_a, btn_b, btn_c = st.columns(3)
+        with btn_a:
+            if st.button("Checker again", use_container_width=True):
+                st.session_state.nav_page = "Symptom checker"
+                st.rerun()
+        with btn_b:
+            if st.button("Ask HerSignal", use_container_width=True):
+                st.session_state.nav_page = "Home"
+                st.rerun()
+        with btn_c:
+            st.caption("PDF export and saved insights are in the full app.")
 
-        render_meaning_block(result_data)
+        render_interactive_results(scores, result_data, st.session_state.chart_path)
 
-    st.markdown("#### More detail")
-
-    with st.expander(
-        f"Contributing symptoms · {result_data.get('contributing_preview', '')}",
-        expanded=False,
-    ):
-        st.write(result_data.get("contributing_intro", ""))
-        chips = result_data.get("contributing_symptoms") or []
-        if chips:
-            chip_html = "".join(
-                f'<span class="hs-insight-pill">{esc(item.get("label", ""))}</span>' for item in chips
-            )
-            render_html(chip_html)
-        else:
-            st.caption("No strong contributing symptoms were identified.")
-
-    with st.expander(
-        f"Pattern overlap · {result_data.get('overlap_preview', '')}",
-        expanded=False,
-    ):
-        st.write(result_data.get("pattern_overlap_note", ""))
-
-    notes = result_data.get("supplement_notes") or []
-    with st.expander(
-        f"Supplement notes ({len(notes)}) · {result_data.get('supplements_preview', '')}",
-        expanded=False,
-    ):
-        st.write(result_data.get("supplement_intro", ""))
-        for note in notes:
-            st.markdown(f"**{note.get('name', 'Note')}**")
-            st.write(note.get("summary", ""))
-            if note.get("warning"):
-                st.warning(note.get("warning"))
-        st.caption(result_data.get("supplement_disclaimer", ""))
-
-    with st.expander(
-        f"Chart explanation · {result_data.get('chart_preview', '')}",
-        expanded=False,
-    ):
-        st.write(result_data.get("chart_explanation", ""))
-
-    with st.expander(
-        f"Note · {result_data.get('note_preview', '')}",
-        expanded=False,
-    ):
-        st.write(result_data.get("friendly_note", ""))
+        render_results_panels(result_data)
+        render_html("</section>")
 
 
 def render_sidebar():
     with st.sidebar:
-        logo_path = ROOT / "static" / "images" / "heart_logo.png"
-        if logo_path.exists():
-            st.image(str(logo_path), width=88)
-        else:
-            render_html(f'<div style="text-align:center;transform:scale(0.8)">{HEART_SVG}</div>')
         render_html(
+            '<div class="hs-sidebar-brand">'
+            f"{render_logo_markup('sidebar')}"
             '<p class="hs-sidebar-title">HerSignal</p>'
-            '<p style="text-align:center;color:#5b4450;font-size:0.9rem;margin:0;">'
-            "Educational PCOS support</p>"
+            '<p class="hs-sidebar-tagline">Educational PCOS support</p>'
+            "</div>"
         )
 
         if "nav_page" not in st.session_state or st.session_state.nav_page not in NAV_PAGES:
@@ -477,6 +634,8 @@ def main():
         page_checker()
     else:
         page_results()
+
+    render_footer_credit()
 
 
 if __name__ == "__main__":

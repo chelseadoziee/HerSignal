@@ -36,17 +36,14 @@
         <div class="score-card hormonal-card {% if scores and scores.hormonal >= scores.metabolic and scores.hormonal >= scores.inflammatory %}top-score{% endif %}" data-chart-category="hormonal">
             <h3>Hormonal</h3>
             <p class="score-card-value">{{ scores.hormonal if scores and scores.hormonal is not none else 0 }}</p>
-            <span class="score-card-hint text-caption">Higher = more yes/maybe in this category</span>
         </div>
         <div class="score-card metabolic-card {% if scores and scores.metabolic >= scores.hormonal and scores.metabolic >= scores.inflammatory %}top-score{% endif %}" data-chart-category="metabolic">
             <h3>Metabolic</h3>
             <p class="score-card-value">{{ scores.metabolic if scores and scores.metabolic is not none else 0 }}</p>
-            <span class="score-card-hint text-caption">Educational score only</span>
         </div>
         <div class="score-card inflammatory-card {% if scores and scores.inflammatory >= scores.hormonal and scores.inflammatory >= scores.metabolic %}top-score{% endif %}" data-chart-category="inflammatory">
             <h3>Inflammatory</h3>
             <p class="score-card-value">{{ scores.inflammatory if scores and scores.inflammatory is not none else 0 }}</p>
-            <span class="score-card-hint text-caption">Not a clinical measurement</span>
         </div>
     </div>
 
