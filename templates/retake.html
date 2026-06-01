@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Follow-up check — HerSignal</title>
+    {% include '_head_assets.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    {% include '_skip_link.html' %}
+    <div class="page-shell">
+        {% include '_account_nav.html' %}
+
+        <header class="hero-card compact-hero" aria-labelledby="retake-page-title">
+            <div class="hero-image-wrap compact-logo-wrap">
+                <img
+                    src="{{ url_for('static', filename='images/heart_logo.png') }}"
+                    alt="HerSignal logo"
+                    class="hero-logo"
+                >
+            </div>
+
+            <div class="hero-text compact-hero-text">
+                <h1 id="retake-page-title">Follow-up insight check</h1>
+                <p class="hero-subtitle">
+                    A shorter, reflective check for returning users. Your answers are compared to your
+                    <strong>most recent saved insight</strong> using scaled educational categories—not clinical measurements.
+                </p>
+            </div>
+        </header>
+
+        <main id="main-content" class="single-column-layout" tabindex="-1">
+            {% include '_medical_disclaimer.html' %}
+
+            <section class="card symptom-page-card retake-page-card">
+                <p class="retake-context-note" role="note">
+                    Comparing to insight from
+                    <time datetime="{{ previous_insight.created_at.isoformat() }}">
+                        {{ previous_insight.created_at.strftime('%d %B %Y · %H:%M') }}
+                    </time>.
+                </p>
+
+                <div class="page-top-row">
+                    <div>
+                        <h2>Retake test</h2>
+                        <p class="section-intro prose-width">
+                            Answer using <strong>yes</strong>, <strong>no</strong>, or <strong>maybe</strong>.
+                            Core items revisit a few symptom areas; follow-up items ask how things may have felt
+                            <strong>since your last saved insight</strong>. HerSignal uses this only to organise educational
+                            categories and gentle reflection—not to diagnose.
+                        </p>
+                    </div>
+                    <a href="{{ url_for('my_insights') }}" class="secondary-btn">Back to My insights</a>
+                </div>
+
+                {% if symptom_error %}
+                <div class="error-box" role="alert">
+                    {{ symptom_error }}
+                </div>
+                {% endif %}
+
+                {% if questions %}
+                <div
+                    class="symptom-progress"
+                    role="region"
+                    aria-labelledby="retake-progress-label"
+                    data-total-questions="{{ questions|length }}"
+                >
+                    <p class="symptom-progress-text" id="retake-progress-label">
+                        <span class="symptom-answered-count">0</span> of {{ questions|length }} questions answered
+                    </p>
+                    <div class="symptom-progress-bar" aria-hidden="true">
+                        <span class="symptom-progress-fill"></span>
+                    </div>
+                </div>
+
+                <form action="{{ url_for('retake_insight') }}" method="POST" class="symptom-form">
+                    {% for item in questions %}
+                    <div class="question-block">
+                        <p class="question-text">{{ loop.index }}. {{ item.question }}</p>
+
+                        <div class="option-row">
+                            <label class="option-pill">
+                                <input
+                                    type="radio"
+                                    name="{{ item.id }}"
+                                    value="yes"
+                                    {% if submitted_answers and submitted_answers.get(item.id) == "yes" %}checked{% endif %}
+                                >
+                                <span>Yes</span>
+                            </label>
+
+                            <label class="option-pill">
+                                <input
+                                    type="radio"
+                                    name="{{ item.id }}"
+                                    value="no"
+                                    {% if submitted_answers and submitted_answers.get(item.id) == "no" %}checked{% endif %}
+                                >
+                                <span>No</span>
+                            </label>
+
+                            <label class="option-pill">
+                                <input
+                                    type="radio"
+                                    name="{{ item.id }}"
+                                    value="maybe"
+                                    {% if submitted_answers and submitted_answers.get(item.id) == "maybe" %}checked{% endif %}
+                                >
+                                <span>Maybe</span>
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <button type="submit" class="primary-btn">See follow-up insight</button>
+                </form>
+                {% else %}
+                <div class="error-box">
+                    The follow-up questionnaire is not available right now. Please try again later.
+                </div>
+                {% endif %}
+
+            </section>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+</body>
+</html>

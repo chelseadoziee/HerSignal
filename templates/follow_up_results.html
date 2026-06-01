@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Follow-up insight — HerSignal</title>
+    {% include '_head_assets.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    {% include '_skip_link.html' %}
+    <div class="page-shell">
+        {% include '_account_nav.html' %}
+
+        <header class="hero-card compact-hero" aria-labelledby="followup-hero-title">
+            <div class="hero-image-wrap compact-logo-wrap">
+                <img
+                    src="{{ url_for('static', filename='images/heart_logo.png') }}"
+                    alt="HerSignal logo"
+                    class="hero-logo"
+                >
+            </div>
+
+            <div class="hero-text compact-hero-text">
+                <h1 id="followup-hero-title">Follow-up insight</h1>
+                <p class="hero-subtitle">
+                    Educational comparison between your latest follow-up check and your previous saved insight
+                    (<time datetime="{{ previous_insight.created_at.isoformat() }}">{{ previous_insight.created_at.strftime('%d %B %Y') }}</time>).
+                    Category scores are shown on a comparable scale within this tool only.
+                </p>
+            </div>
+        </header>
+
+        <main id="main-content" class="single-column-layout" tabindex="-1">
+            {% include '_medical_disclaimer.html' %}
+
+            <section class="card follow-up-results-card">
+                {% if saved_insight %}
+                <div class="insight-saved-banner" role="status">
+                    Follow-up saved to <a href="{{ url_for('my_insights') }}">My insights</a> as summary scores only.
+                </div>
+                {% else %}
+                <div class="error-box" role="alert">
+                    Your follow-up insight could not be saved just now. You can still read this comparison, or try again later.
+                </div>
+                {% endif %}
+
+                <h2>Scaled category comparison</h2>
+                <p class="section-intro prose-width">
+                    Values below are <strong>normalized</strong> (0–100%) so a shorter follow-up can sit fairly next to your
+                    previous summary. They describe this questionnaire only—not a medical test.
+                </p>
+
+                <div class="follow-up-compare-grid">
+                    <div class="follow-up-compare-col">
+                        <h3>Previous insight</h3>
+                        <p class="follow-up-compare-sub">Raw totals / max for that check</p>
+                        <ul class="follow-up-norm-list">
+                            <li>Hormonal <strong>{{ (previous_normalized.hormonal * 100)|round(1) }}%</strong>
+                                <span class="follow-up-raw-hint">raw {{ previous_raw.hormonal | round(2) }} / {{ max_previous.hormonal | round(2) }}</span></li>
+                            <li>Metabolic <strong>{{ (previous_normalized.metabolic * 100)|round(1) }}%</strong>
+                                <span class="follow-up-raw-hint">raw {{ previous_raw.metabolic | round(2) }} / {{ max_previous.metabolic | round(2) }}</span></li>
+                            <li>Inflammatory <strong>{{ (previous_normalized.inflammatory * 100)|round(1) }}%</strong>
+                                <span class="follow-up-raw-hint">raw {{ previous_raw.inflammatory | round(2) }} / {{ max_previous.inflammatory | round(2) }}</span></li>
+                        </ul>
+                    </div>
+                    <div class="follow-up-compare-col follow-up-compare-col--current">
+                        <h3>This follow-up</h3>
+                        <p class="follow-up-compare-sub">Raw totals / max for this questionnaire</p>
+                        <ul class="follow-up-norm-list">
+                            <li>Hormonal <strong>{{ (current_normalized.hormonal * 100)|round(1) }}%</strong>
+                                <span class="follow-up-raw-hint">raw {{ current_raw.hormonal | round(2) }} / {{ max_current.hormonal | round(2) }}</span></li>
+                            <li>Metabolic <strong>{{ (current_normalized.metabolic * 100)|round(1) }}%</strong>
+                                <span class="follow-up-raw-hint">raw {{ current_raw.metabolic | round(2) }} / {{ max_current.metabolic | round(2) }}</span></li>
+                            <li>Inflammatory <strong>{{ (current_normalized.inflammatory * 100)|round(1) }}%</strong>
+                                <span class="follow-up-raw-hint">raw {{ current_raw.inflammatory | round(2) }} / {{ max_current.inflammatory | round(2) }}</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="follow-up-deltas-block">
+                    <h3 class="follow-up-delta-heading">Change on scaled scores (this check − previous)</h3>
+                    <div class="insight-compare-delta-grid">
+                        <span class="insight-delta {% if norm_deltas.hormonal > 0 %}delta-up{% elif norm_deltas.hormonal < 0 %}delta-down{% else %}delta-flat{% endif %}">
+                            Hormonal {{ norm_delta_display.hormonal }} (scaled)
+                        </span>
+                        <span class="insight-delta {% if norm_deltas.metabolic > 0 %}delta-up{% elif norm_deltas.metabolic < 0 %}delta-down{% else %}delta-flat{% endif %}">
+                            Metabolic {{ norm_delta_display.metabolic }} (scaled)
+                        </span>
+                        <span class="insight-delta {% if norm_deltas.inflammatory > 0 %}delta-up{% elif norm_deltas.inflammatory < 0 %}delta-down{% else %}delta-flat{% endif %}">
+                            Inflammatory {{ norm_delta_display.inflammatory }} (scaled)
+                        </span>
+                    </div>
+                </div>
+
+                <div class="follow-up-narrative-block">
+                    <h3>Reflection</h3>
+                    <p class="section-intro">{{ overall_summary }}</p>
+                    {% if dominant_note %}
+                    <p class="section-intro">{{ dominant_note }}</p>
+                    {% endif %}
+                    <ul class="follow-up-category-list">
+                        {% for sentence in category_sentences %}
+                        <li>{{ sentence }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="follow-up-reflection-block">
+                    <h3>What you told us in this follow-up</h3>
+                    <p class="section-intro prose-width">
+                        These notes come only from your <strong>change-focused</strong> answers (not from stored answers we do not keep from older checks).
+                    </p>
+                    {% if reflection_bullets %}
+                    <ul class="follow-up-reflection-list">
+                        {% for line in reflection_bullets %}
+                        <li>{{ line }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="section-intro">You did not flag the optional follow-up shifts with yes or maybe—which is also useful context.</p>
+                    {% endif %}
+                </div>
+
+                <div class="follow-up-actions page-top-row">
+                    <a href="{{ url_for('my_insights') }}" class="primary-btn">My insights</a>
+                    <a href="{{ url_for('retake_insight') }}" class="secondary-btn">Follow-up check again</a>
+                    <a href="{{ url_for('symptoms_page') }}" class="secondary-btn">Full symptom checker</a>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

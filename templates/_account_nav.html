@@ -1,0 +1,19 @@
+<nav class="account-nav" aria-label="Dashboard navigation">
+    <div class="account-nav-primary">
+        <a href="{{ url_for('home') }}" class="account-nav-btn{% if request.endpoint == 'home' %} account-nav-btn--active{% endif %}">Home</a>
+        {% if is_logged_in %}
+        <a href="{{ url_for('my_insights') }}" class="account-nav-btn{% if request.endpoint in ('my_insights', 'retake_insight') %} account-nav-btn--active{% endif %}">Insights</a>
+        {% endif %}
+    </div>
+    <div class="account-nav-secondary">
+        {% if is_logged_in %}
+        <span class="account-nav-meta">Signed in as <strong>{{ session.get('user_name', 'user') }}</strong></span>
+        <form method="post" action="{{ url_for('auth.logout') }}" class="account-logout-form">
+            <button type="submit" class="account-nav-btn account-nav-btn--signout">Sign out</button>
+        </form>
+        {% else %}
+        <a href="{{ url_for('auth.login') }}" class="account-nav-btn">Log in</a>
+        <a href="{{ url_for('auth.register') }}" class="account-nav-btn account-nav-btn--register">Register</a>
+        {% endif %}
+    </div>
+</nav>

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "irregular_periods",
+    "question": "Have your periods often been irregular, delayed, or missed for noticeable lengths of time?",
+    "category": "hormonal"
+  },
+  {
+    "id": "acne",
+    "question": "Have you experienced persistent acne, oily skin, or breakouts that feel difficult to explain through usual skin changes?",
+    "category": "hormonal"
+  },
+  {
+    "id": "facial_hair",
+    "question": "Have you noticed increased facial, chin, chest, or body hair growth that feels different from your usual pattern?",
+    "category": "hormonal"
+  },
+  {
+    "id": "scalp_thinning",
+    "question": "Have you noticed scalp hair thinning, widening part lines, or unusual hair shedding?",
+    "category": "hormonal"
+  },
+  {
+    "id": "weight_changes",
+    "question": "Have you experienced weight gain or difficulty managing weight even when your usual eating habits have not changed much?",
+    "category": "metabolic"
+  },
+  {
+    "id": "fatigue",
+    "question": "Have you often felt unusually tired, drained, or low in energy even after resting?",
+    "category": "metabolic"
+  },
+  {
+    "id": "cravings",
+    "question": "Do you often experience strong sugar cravings, frequent hunger, or sudden energy crashes during the day?",
+    "category": "metabolic"
+  },
+  {
+    "id": "stress_worsening",
+    "question": "Do your symptoms seem to become more noticeable during stress, poor sleep, or emotionally difficult periods?",
+    "category": "inflammatory"
+  },
+  {
+    "id": "bloating",
+    "question": "Do you often experience bloating, puffiness, or a swollen feeling that seems to come and go with your symptoms?",
+    "category": "inflammatory"
+  },
+  {
+    "id": "mood_changes",
+    "question": "Do you notice mood changes, emotional sensitivity, or feeling more overwhelmed when your other symptoms become more noticeable?",
+    "category": "inflammatory"
+  }
+]

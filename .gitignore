@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Local secrets & database (do not publish)
+instance/*.sqlite
+instance/*.db
+instance/.secret_key
+static/charts/
+.env
+.env.*
+
+# IDE / OS
+.cursor/
+.DS_Store
+*.swp
+
+# Generated exports (if saved in project root)
+*.pdf

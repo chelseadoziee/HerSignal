@@ -1,0 +1,62 @@
+{
+    "irregular_periods": {
+      "hormonal": 2,
+      "metabolic": 0,
+      "inflammatory": 0
+    },
+    "acne": {
+      "hormonal": 2,
+      "metabolic": 0,
+      "inflammatory": 1
+    },
+    "facial_hair": {
+      "hormonal": 2,
+      "metabolic": 0,
+      "inflammatory": 0
+    },
+    "scalp_thinning": {
+      "hormonal": 2,
+      "metabolic": 0,
+      "inflammatory": 0
+    },
+    "weight_changes": {
+      "hormonal": 1,
+      "metabolic": 2,
+      "inflammatory": 0
+    },
+    "fatigue": {
+      "hormonal": 0,
+      "metabolic": 1,
+      "inflammatory": 1
+    },
+    "cravings": {
+      "hormonal": 0,
+      "metabolic": 2,
+      "inflammatory": 0
+    },
+    "mood_changes": {
+      "hormonal": 1,
+      "metabolic": 0,
+      "inflammatory": 1
+    },
+    "followup_energy_cravings_shift": {
+      "hormonal": 0,
+      "metabolic": 2,
+      "inflammatory": 1
+    },
+    "followup_skin_complexion_shift": {
+      "hormonal": 2,
+      "metabolic": 0,
+      "inflammatory": 1
+    },
+    "followup_stress_sleep_shift": {
+      "hormonal": 1,
+      "metabolic": 0,
+      "inflammatory": 2
+    },
+    "followup_weight_appetite_shift": {
+      "hormonal": 1,
+      "metabolic": 2,
+      "inflammatory": 0
+    }
+  }

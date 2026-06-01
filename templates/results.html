@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HerSignal Results</title>
+    {% include '_head_assets.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    {% include '_skip_link.html' %}
+    <div class="page-shell">
+        {% include '_account_nav.html' %}
+
+        <header class="hero-card compact-hero" aria-labelledby="results-hero-title">
+            <div class="hero-image-wrap compact-logo-wrap">
+                <img
+                    src="{{ url_for('static', filename='images/heart_logo.png') }}"
+                    alt="HerSignal logo"
+                    class="hero-logo"
+                >
+            </div>
+
+            <div class="hero-text compact-hero-text">
+                <h1 id="results-hero-title">HerSignal</h1>
+                <p class="hero-subtitle">
+                    Your responses have been brought together as one broader educational pattern. The insight below is designed to help you see which underlying tendencies may currently feel more noticeable to offer you a clearer sense of how some of your certain responses may connect within a wider symptom area.
+                </p>
+            </div>
+        </header>
+
+        <main id="main-content" class="single-column-layout" tabindex="-1">
+            {% include '_medical_disclaimer.html' %}
+
+            <section class="card results-card">
+
+                <div class="page-top-row">
+                    <div>
+                        {% if saved_insight %}
+                        <div class="insight-saved-banner" role="status">
+                            Saved to <a href="{{ url_for('my_insights') }}">My insights</a>—your category scores are on your private timeline.
+                        </div>
+                        {% endif %}
+                        <h2>{{ result_data.page_title if result_data and result_data.page_title else "Your Symptom Pattern Results" }}</h2>
+                        <p class="section-intro prose-width">
+                            {% if user_name %}
+                                {{ user_name }}, {{ result_data.page_intro|lower if result_data and result_data.page_intro else "your latest educational result is shown below." }}
+                            {% else %}
+                                {{ result_data.page_intro if result_data and result_data.page_intro else "Your latest educational result is shown below." }}
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="results-nav-group" aria-label="Next steps">
+                        <a href="{{ url_for('symptoms_page') }}" class="secondary-btn">Back to Symptoms</a>
+                        <a href="{{ url_for('home') }}" class="secondary-btn">Chat with HerSignal</a>
+                        <a href="{{ url_for('export_results') }}" class="primary-btn export-btn">Download My Summary</a>
+                    </div>
+                </div>
+
+                <div class="results-next-strip">
+                    <h3>What you can do next</h3>
+                    <p>
+                        Use these results as a conversation starter with a clinician, a personal checkpoint if you redo the checker later, or a gentle way to notice which pattern category felt most salient today. If you are logged in, open <a href="{{ url_for('my_insights') }}">My insights</a> to compare scores over time.
+                    </p>
+                </div>
+
+                <div class="score-cards">
+                    <div class="score-card hormonal-card {% if scores and scores.hormonal >= scores.metabolic and scores.hormonal >= scores.inflammatory %}top-score{% endif %}">
+                        <h3>Hormonal</h3>
+                        <p>{{ scores.hormonal if scores and scores.hormonal is not none else 0 }}</p>
+                    </div>
+
+                    <div class="score-card metabolic-card {% if scores and scores.metabolic >= scores.hormonal and scores.metabolic >= scores.inflammatory %}top-score{% endif %}">
+                        <h3>Metabolic</h3>
+                        <p>{{ scores.metabolic if scores and scores.metabolic is not none else 0 }}</p>
+                    </div>
+
+                    <div class="score-card inflammatory-card {% if scores and scores.inflammatory >= scores.hormonal and scores.inflammatory >= scores.metabolic %}top-score{% endif %}">
+                        <h3>Inflammatory</h3>
+                        <p>{{ scores.inflammatory if scores and scores.inflammatory is not none else 0 }}</p>
+                    </div>
+                </div>
+
+                <div class="results-layout">
+
+                    <div class="results-left-column">
+
+                        <div class="result-info-card">
+                            <h3>Symptoms Contributing to This Result</h3>
+                            <p class="card-intro">
+                                {{ result_data.contributing_intro if result_data and result_data.contributing_intro else "HerSignal has used the responses available to identify the symptoms contributing most clearly to this result." }}
+                            </p>
+
+                            {% if result_data and result_data.contributing_symptoms %}
+                                <div class="symptom-chip-group">
+                                    {% for item in result_data.contributing_symptoms %}
+                                        <span class="symptom-chip">
+                                            {{ item.label }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="card-note">
+                                    No strong contributing symptoms were identified in this response.
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <div class="result-info-card">
+                            <h3>PCOS SymptomPattern Overlap </h3>
+                            <p>{{ result_data.pattern_overlap_note if result_data and result_data.pattern_overlap_note else "HerSignal could not generate a detailed overlap note for this result just now." }}</p>
+                        </div>
+
+                        <div class="result-info-card">
+                            <h3>What This May Mean in Your PCOS Pattern</h3>
+                            <p>{{ result_data.why_hersignal_presented_response if result_data and result_data.why_hersignal_presented_response else "A fuller interpretation could not be generated for this result just now, but your category scores above are still available for you to use as a simple educational guide." }}</p>
+                        </div>
+
+                        <div class="result-info-card">
+                            <h3>Some Potentially Helpful Supplements</h3>
+                            <p class="card-intro">{{ result_data.supplement_intro if result_data and result_data.supplement_intro else "Any supplement notes shown here are educational only and are not treatment recommendations." }}</p>
+
+                            {% if result_data and result_data.supplement_notes %}
+                                <div class="supplement-note-list">
+                                    {% for note in result_data.supplement_notes %}
+                                        <div class="supplement-note-item">
+                                            <h4>{{ note.name }}</h4>
+                                            <p>{{ note.summary }}</p>
+                                            {% if note.warning %}
+                                                <p class="supplement-warning">{{ note.warning }}</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="card-note">
+                                    No specific supplement notes were triggered by this response pattern.
+                                </p>
+                            {% endif %}
+                        </div>
+
+                    </div>
+
+                    <div class="results-right-column">
+
+                        {% if chart_path %}
+                        <div class="chart-panel">
+                            <h3>Symptom Pattern Chart</h3>
+                            <p class="chart-intro">
+                                This chart shows how your current symptom pattern compares across the hormonal, metabolic, and inflammatory categories.
+                            </p>
+                            <img
+                                src="{{ url_for('static', filename=chart_path) }}"
+                                alt="HerSignal symptom chart"
+                                class="chart-image"
+                            >
+                        </div>
+                        {% else %}
+                        <div class="chart-panel">
+                            <h3>Symptom Pattern Chart</h3>
+                            <p class="chart-intro">
+                                The written result summary is available, but the chart could not be displayed for this result just now.
+                            </p>
+                        </div>
+                        {% endif %}
+
+                        <div class="result-info-card chart-explanation-card">
+                            <h3>Pattern Chart Explanation</h3>
+                            <p>{{ result_data.chart_explanation if result_data and result_data.chart_explanation else "A chart explanation could not be prepared just now. The category score cards above can still be used as a simple visual guide." }}</p>
+                        </div>
+
+                        <div class="result-info-card friendly-note-card">
+                            <h3>Friendly and Useful Note</h3>
+                            <p>{{ result_data.friendly_note if result_data and result_data.friendly_note else "Please use this result as a gentle educational guide and try again if you would like HerSignal to regenerate the full result." }}</p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
+

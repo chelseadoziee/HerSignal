@@ -1,0 +1,47 @@
+[
+  {
+    "id": "irregular_periods",
+    "question": "Right now, have your periods often been irregular, delayed, or missed for noticeable lengths of time?",
+    "category": "hormonal"
+  },
+  {
+    "id": "acne",
+    "question": "Right now, have you had persistent acne, oily skin, or breakouts that feel difficult to explain through usual skin changes?",
+    "category": "hormonal"
+  },
+  {
+    "id": "weight_changes",
+    "question": "Right now, have you experienced weight gain or difficulty managing weight even when your usual eating habits have not changed much?",
+    "category": "metabolic"
+  },
+  {
+    "id": "cravings",
+    "question": "Right now, do you often experience strong sugar cravings, frequent hunger, or sudden energy crashes during the day?",
+    "category": "metabolic"
+  },
+  {
+    "id": "mood_changes",
+    "question": "Right now, do you notice mood changes, emotional sensitivity, or feeling more overwhelmed when your other symptoms feel more noticeable?",
+    "category": "inflammatory"
+  },
+  {
+    "id": "followup_energy_cravings_shift",
+    "question": "Since your last saved insight, have energy crashes or strong cravings felt more noticeable to you?",
+    "category": "metabolic"
+  },
+  {
+    "id": "followup_skin_complexion_shift",
+    "question": "Since your last saved insight, have acne, oily skin, or related complexion changes felt more noticeable?",
+    "category": "hormonal"
+  },
+  {
+    "id": "followup_stress_sleep_shift",
+    "question": "Since your last saved insight, have symptoms felt harder to manage when stress is high or sleep has been uneven?",
+    "category": "inflammatory"
+  },
+  {
+    "id": "followup_weight_appetite_shift",
+    "question": "Since your last saved insight, have changes in weight or appetite felt more noticeable in day-to-day life?",
+    "category": "metabolic"
+  }
+]

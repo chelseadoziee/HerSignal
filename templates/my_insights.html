@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My insights — HerSignal</title>
+    {% include '_head_assets.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    {% include '_skip_link.html' %}
+    <div class="page-shell">
+        {% include '_account_nav.html' %}
+
+        <header class="hero-card compact-hero" aria-labelledby="insights-hero-title">
+            <div class="hero-image-wrap compact-logo-wrap">
+                <img src="{{ url_for('static', filename='images/heart_logo.png') }}" alt="HerSignal logo" class="hero-logo">
+            </div>
+            <div class="hero-text compact-hero-text">
+                <h1 id="insights-hero-title">My insights</h1>
+                <p class="hero-subtitle">
+                    A private timeline of your <strong>educational category scores</strong> from each symptom check while you are logged in.
+                    HerSignal does not store your individual answers only these summary numbers so you can notice change over time.
+                </p>
+            </div>
+        </header>
+
+        <main id="main-content" class="single-column-layout" tabindex="-1">
+            {% include '_medical_disclaimer.html' %}
+
+            {% if load_error %}
+            <div class="error-box" role="alert">{{ load_error }}</div>
+            {% endif %}
+
+            {% if request.args.get('retake') == 'need_insight' %}
+            <div class="error-box" role="alert">
+                Save a baseline insight first: complete the <a href="{{ url_for('symptoms_page') }}">symptom checker</a> while signed in, then return here for a follow-up check.
+            </div>
+            {% endif %}
+
+            {% if not entries %}
+            <section class="card name-card">
+                <h2>No snapshots yet</h2>
+                <p class="section-intro">
+                    Complete the symptom checker once while signed in—your pattern summary will appear here automatically.
+                </p>
+                <a href="{{ url_for('symptoms_page') }}" class="primary-btn">Go to symptom checker</a>
+            </section>
+            {% else %}
+            <section class="card retake-cta-card">
+                <h2 class="retake-cta-title">Retake test</h2>
+                <p class="section-intro">
+                    Short follow-up check comparing your current pattern with your previous insight—scaled for a fair educational comparison.
+                </p>
+                <a href="{{ url_for('retake_insight') }}" class="primary-btn retake-cta-btn">Start follow-up check</a>
+            </section>
+            {% if sparklines %}
+            <section class="card insight-sparklines-card">
+                <h2 class="insight-sparklines-title">Trend across checks</h2>
+                <p class="section-intro insight-sparklines-intro">
+                    Mini sparklines read <strong>oldest on the left</strong> to <strong>newest on the right</strong> (same order as your list below, reversed).
+                </p>
+                <div class="insight-sparkline-trio">
+                    {% set sp_h = sparklines.get('hormonal') %}
+                    {% if sp_h %}
+                    <div class="insight-sparkline-cell">
+                        <span class="insight-sparkline-label">Hormonal</span>
+                        <svg class="insight-sparkline-svg" role="img" aria-label="Hormonal score trend across saved checks" viewBox="0 0 {{ sp_h.width }} {{ sp_h.height }}" preserveAspectRatio="none">
+                            <polyline fill="none" stroke="{{ sp_h.stroke }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="{{ sp_h.points }}" />
+                        </svg>
+                    </div>
+                    {% endif %}
+                    {% set sp_m = sparklines.get('metabolic') %}
+                    {% if sp_m %}
+                    <div class="insight-sparkline-cell">
+                        <span class="insight-sparkline-label">Metabolic</span>
+                        <svg class="insight-sparkline-svg" role="img" aria-label="Metabolic score trend across saved checks" viewBox="0 0 {{ sp_m.width }} {{ sp_m.height }}" preserveAspectRatio="none">
+                            <polyline fill="none" stroke="{{ sp_m.stroke }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="{{ sp_m.points }}" />
+                        </svg>
+                    </div>
+                    {% endif %}
+                    {% set sp_i = sparklines.get('inflammatory') %}
+                    {% if sp_i %}
+                    <div class="insight-sparkline-cell">
+                        <span class="insight-sparkline-label">Inflammatory</span>
+                        <svg class="insight-sparkline-svg" role="img" aria-label="Inflammatory score trend across saved checks" viewBox="0 0 {{ sp_i.width }} {{ sp_i.height }}" preserveAspectRatio="none">
+                            <polyline fill="none" stroke="{{ sp_i.stroke }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="{{ sp_i.points }}" />
+                        </svg>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if snapshot_options|length >= 2 %}
+            <section class="card insight-compare-card">
+                <h2 class="insight-compare-title">Compare two dates</h2>
+                <p class="section-intro">
+                    Pick any two saved checks. HerSignal shows the <strong>earlier</strong> snapshot first and the <strong>later</strong> second, with the score change between them.
+                </p>
+                {% if compare_error %}
+                <div class="error-box">{{ compare_error }}</div>
+                {% endif %}
+                <form method="get" action="{{ url_for('my_insights') }}" class="insight-compare-form">
+                    <div class="insight-compare-selects">
+                        <div class="insight-compare-field">
+                            <label for="compare-a">Snapshot A</label>
+                            <select id="compare-a" name="a" required>
+                                {% for opt in snapshot_options %}
+                                <option value="{{ opt.id }}" {% if compare_select_a == opt.id %}selected{% endif %}>{{ opt.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="insight-compare-field">
+                            <label for="compare-b">Snapshot B</label>
+                            <select id="compare-b" name="b" required>
+                                {% for opt in snapshot_options %}
+                                <option value="{{ opt.id }}" {% if compare_select_b == opt.id %}selected{% endif %}>{{ opt.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="primary-btn insight-compare-submit">Compare</button>
+                </form>
+
+                {% if compare %}
+                <div class="insight-compare-result">
+                    <div class="insight-compare-columns">
+                        <div class="insight-compare-col">
+                            <h3 class="insight-compare-col-head">Earlier</h3>
+                            <time class="insight-compare-time">{{ compare.earlier.created_at.strftime('%d %B %Y · %H:%M') }}</time>
+                            <ul class="insight-compare-scores">
+                                <li>Hormonal <strong>{{ compare.earlier.hormonal | round(2) }}</strong></li>
+                                <li>Metabolic <strong>{{ compare.earlier.metabolic | round(2) }}</strong></li>
+                                <li>Inflammatory <strong>{{ compare.earlier.inflammatory | round(2) }}</strong></li>
+                            </ul>
+                            <span class="insight-dominant-pill">{{ compare.earlier.dominant_label }}</span>
+                        </div>
+                        <div class="insight-compare-col insight-compare-col--later">
+                            <h3 class="insight-compare-col-head">Later</h3>
+                            <time class="insight-compare-time">{{ compare.later.created_at.strftime('%d %B %Y · %H:%M') }}</time>
+                            <ul class="insight-compare-scores">
+                                <li>Hormonal <strong>{{ compare.later.hormonal | round(2) }}</strong></li>
+                                <li>Metabolic <strong>{{ compare.later.metabolic | round(2) }}</strong></li>
+                                <li>Inflammatory <strong>{{ compare.later.inflammatory | round(2) }}</strong></li>
+                            </ul>
+                            <span class="insight-dominant-pill">{{ compare.later.dominant_label }}</span>
+                        </div>
+                    </div>
+                    <div class="insight-compare-deltas">
+                        <span class="insight-compare-delta-title">Change (later − earlier)</span>
+                        <div class="insight-compare-delta-grid">
+                            <span class="insight-delta {% if compare.dh > 0 %}delta-up{% elif compare.dh < 0 %}delta-down{% else %}delta-flat{% endif %}">Hormonal {{ compare.dh_display }}</span>
+                            <span class="insight-delta {% if compare.dm > 0 %}delta-up{% elif compare.dm < 0 %}delta-down{% else %}delta-flat{% endif %}">Metabolic {{ compare.dm_display }}</span>
+                            <span class="insight-delta {% if compare.di > 0 %}delta-up{% elif compare.di < 0 %}delta-down{% else %}delta-flat{% endif %}">Inflammatory {{ compare.di_display }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </section>
+            {% endif %}
+
+            <section class="card insight-timeline-intro">
+                <p class="section-intro" style="margin:0;">
+                    Newest first. <strong>Δ vs last</strong> compares each check to the one before it (educational tool only).
+                </p>
+            </section>
+
+            {% for entry in entries %}
+            <article class="card insight-snapshot-card">
+                <header class="insight-snapshot-header">
+                    <time class="insight-snapshot-date" datetime="{{ entry.created_at.isoformat() }}">
+                        {{ entry.created_at.strftime('%d %B %Y') }} · {{ entry.created_at.strftime('%H:%M') }}
+                    </time>
+                    {% if entry.test_type == 'retake' %}
+                    <span class="insight-type-pill insight-type-pill--retake">Follow-up</span>
+                    {% else %}
+                    <span class="insight-type-pill insight-type-pill--baseline">Baseline</span>
+                    {% endif %}
+                    <span class="insight-dominant-pill">{{ entry.dominant_label }}</span>
+                </header>
+
+                <div class="insight-score-grid">
+                    <div class="insight-score-cell">
+                        <span class="insight-score-label">Hormonal</span>
+                        <span class="insight-score-value">{{ entry.hormonal | round(2) }}</span>
+                        <span class="insight-delta {% if entry.delta_hormonal is not none and entry.delta_hormonal > 0 %}delta-up{% elif entry.delta_hormonal is not none and entry.delta_hormonal < 0 %}delta-down{% else %}delta-flat{% endif %}">
+                            Δ {{ entry.delta_hormonal_display }}
+                        </span>
+                    </div>
+                    <div class="insight-score-cell">
+                        <span class="insight-score-label">Metabolic</span>
+                        <span class="insight-score-value">{{ entry.metabolic | round(2) }}</span>
+                        <span class="insight-delta {% if entry.delta_metabolic is not none and entry.delta_metabolic > 0 %}delta-up{% elif entry.delta_metabolic is not none and entry.delta_metabolic < 0 %}delta-down{% else %}delta-flat{% endif %}">
+                            Δ {{ entry.delta_metabolic_display }}
+                        </span>
+                    </div>
+                    <div class="insight-score-cell">
+                        <span class="insight-score-label">Inflammatory</span>
+                        <span class="insight-score-value">{{ entry.inflammatory | round(2) }}</span>
+                        <span class="insight-delta {% if entry.delta_inflammatory is not none and entry.delta_inflammatory > 0 %}delta-up{% elif entry.delta_inflammatory is not none and entry.delta_inflammatory < 0 %}delta-down{% else %}delta-flat{% endif %}">
+                            Δ {{ entry.delta_inflammatory_display }}
+                        </span>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+
+            <section class="card insight-footer-card">
+                <p class="section-intro" style="margin:0;font-size:0.9rem;">
+                    Run a new check anytime from the <a href="{{ url_for('symptoms_page') }}">symptom checker</a>. Scores depend on how you answer that day—they are guides for reflection, not diagnosis.
+                </p>
+            </section>
+            {% endif %}
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

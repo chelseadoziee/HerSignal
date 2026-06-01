@@ -1,0 +1,68 @@
+{
+  "myo_inositol": {
+    "name": "Myo-inositol",
+    "summary": "Some studies suggest myo-inositol may support cycle regularity, ovulation patterns, and insulin-related symptoms in some women with PCOS, particularly where hormonal and metabolic features overlap.",
+    "warning": "This is educational information only and should not replace medical advice."
+  },
+
+  "omega_3": {
+    "name": "Omega-3",
+    "summary": "Omega-3 has been studied for metabolic and inflammatory support in some women with PCOS, particularly where symptoms such as inflammation, lipid imbalance, or general metabolic stress are present.",
+    "warning": "This is educational information only and should not replace medical advice."
+  },
+
+  "magnesium": {
+    "name": "Magnesium",
+    "summary": "Magnesium is often discussed in PCOS research because mineral-based supplementation has been associated with insulin-related support, blood sugar balance, and general metabolic wellbeing in some women.",
+    "warning": "This is educational information only and should not replace medical advice."
+  },
+
+  "vitamin_d": {
+    "name": "Vitamin D",
+    "summary": "Vitamin D has been explored in PCOS-related research because low vitamin D levels are common in some women and may relate to hormonal balance, insulin response, and general wellbeing.",
+    "warning": "This is educational information only and should not replace medical advice."
+  },
+
+  "zinc": {
+    "name": "Zinc",
+    "summary": "Zinc has been examined in PCOS research for its possible role in glucose metabolism, skin health, and inflammatory balance, particularly where metabolic or acne-related symptoms are present.",
+    "warning": "This is educational information only and should not replace medical advice."
+  },
+
+  "selenium": {
+    "name": "Selenium",
+    "summary": "Selenium has been studied for antioxidant support and may be relevant in some women where oxidative stress and metabolic imbalance are discussed in PCOS-related research.",
+    "warning": "This is educational information only and should not replace medical advice."
+  },
+
+  "chromium": {
+    "name": "Chromium",
+    "summary": "Chromium has been explored in relation to insulin sensitivity and blood sugar regulation in some women with PCOS, although research findings remain mixed.",
+    "warning": "This is educational information only and should not replace medical advice."
+  },
+
+  "probiotics": {
+    "name": "Probiotics",
+    "summary": "Some studies suggest probiotics may support gut balance and inflammatory regulation, which may be relevant where digestive patterns and metabolic symptoms overlap in some women with PCOS.",
+    "warning": "This is educational information only and should not replace medical advice."
+  },
+
+  "curcumin": {
+    "name": "Curcumin",
+    "summary": "Curcumin has been discussed for anti-inflammatory support in some women with PCOS, particularly where inflammatory symptom patterns are being explored.",
+    "warning": "This is educational information only and should not replace medical advice."
+  },
+
+  "l_carnitine": {
+    "name": "L-carnitine",
+    "summary": "L-carnitine has been examined in some PCOS studies for metabolic support, energy regulation, and possible effects on insulin-related pathways.",
+    "warning": "This is educational information only and should not replace medical advice."
+  },
+  
+  "spearmint_tea": {
+    "name": "Spearmint Tea",
+    "summary": "Spearmint tea has been studied in some women with PCOS because regular intake has been associated with reduced free androgen activity in certain research settings. This is especially discussed where facial hair growth, acne, or other androgen-related symptoms are more noticeable, because lower androgen activity may gradually support reduced hair growth over time.",
+    "warning": "This is educational information only and should not replace medical advice."
+  }
+}
+
